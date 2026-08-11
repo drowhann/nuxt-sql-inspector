@@ -1,0 +1,26 @@
+{
+  "name": "sql-inspector",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "db:push": "drizzle-kit push",
+    "self-check": "node scripts/self-check.mjs"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "nuxt": "^3.21.11",
+    "pg": "^8.23.0",
+    "vue": "^3.5.41",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.21.0",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^7.0.2"
+  }
+}
