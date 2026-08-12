@@ -24,7 +24,7 @@ export default defineNuxtConfig({
 ## Instrument the client (required)
 
 ```ts
-import { instrumentSqlInspector } from '#sql-inspector'
+import { instrumentSqlInspector } from '#nuxt-sql-inspector'
 
 const pool = instrumentSqlInspector(new Pool({ connectionString }))
 // or postgres.js: instrumentSqlInspector(postgres(url))

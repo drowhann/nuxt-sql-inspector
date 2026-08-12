@@ -2,7 +2,7 @@ import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres'
 import { drizzle as drizzlePostgresJs } from 'drizzle-orm/postgres-js'
 import { Client, Pool } from 'pg'
 import postgres from 'postgres'
-import { instrumentSqlInspector } from '#sql-inspector'
+import { instrumentSqlInspector } from '#nuxt-sql-inspector'
 import * as schema from './schema'
 
 function databaseUrl() {

@@ -4,7 +4,7 @@
   "description": "Dev-only Nuxt module that shows API requests and their PostgreSQL queries.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rohan/sql-inspector.git"
+    "url": "git+https://github.com/rohan/nuxt-sql-inspector.git"
   },
   "keywords": [
     "nuxt",

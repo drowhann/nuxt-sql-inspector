@@ -9,7 +9,7 @@ Then open `/__sql_queries` in development.
 ```ts
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { instrumentSqlInspector } from '#sql-inspector'
+import { instrumentSqlInspector } from '#nuxt-sql-inspector'
 
 const pool = instrumentSqlInspector(new Pool({ connectionString: process.env.DATABASE_URL }))
 const db = drizzle({ client: pool })
@@ -24,7 +24,7 @@ instrumentSqlInspector(db2.$client)
 ```ts
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { instrumentSqlInspector } from '#sql-inspector'
+import { instrumentSqlInspector } from '#nuxt-sql-inspector'
 
 const sql = instrumentSqlInspector(postgres(process.env.DATABASE_URL!))
 const db = drizzle({ client: sql })
@@ -33,4 +33,4 @@ const db2 = drizzle(process.env.DATABASE_URL!)
 instrumentSqlInspector(db2.$client)
 ```
 
-`#sql-inspector` is a Nitro alias registered by the module. It is available in server code only.
+`#nuxt-sql-inspector` is a Nitro alias registered by the module. It is available in server code only.

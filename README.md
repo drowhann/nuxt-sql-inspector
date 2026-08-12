@@ -15,7 +15,7 @@ export default defineNuxtConfig({
 Wrap your client once:
 
 ```ts
-import { instrumentSqlInspector } from '#sql-inspector'
+import { instrumentSqlInspector } from '#nuxt-sql-inspector'
 const pool = instrumentSqlInspector(new Pool({ connectionString }))
 ```
 

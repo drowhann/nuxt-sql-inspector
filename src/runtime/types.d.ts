@@ -1,4 +1,4 @@
-declare module '#sql-inspector' {
+declare module '#nuxt-sql-inspector' {
   export function instrumentSqlInspector<T = void>(client?: T): T
   export function instrumentPg(): void
   export function instrumentPostgresJs<T>(sql: T): T

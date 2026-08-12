@@ -63,11 +63,11 @@ export default defineNuxtModule<ModuleOptions>({
 
     const instrumentPath = resolver.resolve('./runtime/server/utils/instrument')
     nuxt.options.alias ||= {}
-    nuxt.options.alias['#sql-inspector'] = instrumentPath
+    nuxt.options.alias['#nuxt-sql-inspector'] = instrumentPath
 
     nuxt.options.nitro ||= {}
     nuxt.options.nitro.alias ||= {}
-    nuxt.options.nitro.alias['#sql-inspector'] = instrumentPath
+    nuxt.options.nitro.alias['#nuxt-sql-inspector'] = instrumentPath
 
     addServerImports([
       {
@@ -96,7 +96,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     extendPages((pages) => {
       pages.push({
-        name: 'sql-inspector',
+        name: 'nuxt-sql-inspector',
         path,
         file: resolver.resolve('./runtime/app/pages/sql-queries.vue'),
       })
