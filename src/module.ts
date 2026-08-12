@@ -1,7 +1,6 @@
 import {
   addRouteMiddleware,
   addServerHandler,
-  addServerImports,
   addServerPlugin,
   createResolver,
   defineNuxtModule,
@@ -61,20 +60,16 @@ export default defineNuxtModule<ModuleOptions>({
       apiBase,
     }
 
-    const instrumentPath = resolver.resolve('./runtime/server/utils/instrument')
+    const inspectPg = resolver.resolve('./runtime/server/utils/inspect-pg')
+    const inspectPostgresJs = resolver.resolve('./runtime/server/utils/inspect-postgresjs')
     nuxt.options.alias ||= {}
-    nuxt.options.alias['#nuxt-sql-inspector'] = instrumentPath
+    nuxt.options.alias['#nuxt-sql-inspector/node-postgres'] = inspectPg
+    nuxt.options.alias['#nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
 
     nuxt.options.nitro ||= {}
     nuxt.options.nitro.alias ||= {}
-    nuxt.options.nitro.alias['#nuxt-sql-inspector'] = instrumentPath
-
-    addServerImports([
-      {
-        name: 'instrumentSqlInspector',
-        from: instrumentPath,
-      },
-    ])
+    nuxt.options.nitro.alias['#nuxt-sql-inspector/node-postgres'] = inspectPg
+    nuxt.options.nitro.alias['#nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
 
     addServerPlugin(resolver.resolve('./runtime/server/plugin'))
 

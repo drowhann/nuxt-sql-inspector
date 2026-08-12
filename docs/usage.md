@@ -1,6 +1,6 @@
 # Usage
 
-Call `instrumentSqlInspector` **once** when you create the driver client. The module does not auto-patch.
+Call `inspectSql` **once** when you create the driver client. Import it from the subpath that matches the driver. The module does not auto-patch.
 
 Then open `/__sql_queries` in development.
 
@@ -9,14 +9,14 @@ Then open `/__sql_queries` in development.
 ```ts
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { instrumentSqlInspector } from '#nuxt-sql-inspector'
+import { inspectSql } from '#nuxt-sql-inspector/node-postgres'
 
-const pool = instrumentSqlInspector(new Pool({ connectionString: process.env.DATABASE_URL }))
+const pool = inspectSql(new Pool({ connectionString: process.env.DATABASE_URL }))
 const db = drizzle({ client: pool })
 
 // drizzle created the pool:
 const db2 = drizzle(process.env.DATABASE_URL!)
-instrumentSqlInspector(db2.$client)
+inspectSql(db2.$client)
 ```
 
 ## postgres.js
@@ -24,13 +24,13 @@ instrumentSqlInspector(db2.$client)
 ```ts
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { instrumentSqlInspector } from '#nuxt-sql-inspector'
+import { inspectSql } from '#nuxt-sql-inspector/postgres-js'
 
-const sql = instrumentSqlInspector(postgres(process.env.DATABASE_URL!))
+const sql = inspectSql(postgres(process.env.DATABASE_URL!))
 const db = drizzle({ client: sql })
 
 const db2 = drizzle(process.env.DATABASE_URL!)
-instrumentSqlInspector(db2.$client)
+inspectSql(db2.$client)
 ```
 
-`#nuxt-sql-inspector` is a Nitro alias registered by the module. It is available in server code only.
+`#nuxt-sql-inspector/node-postgres` and `#nuxt-sql-inspector/postgres-js` are Nitro aliases registered by the module. They are available in server code only.

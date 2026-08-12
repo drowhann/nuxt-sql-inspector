@@ -12,11 +12,14 @@ export default defineNuxtConfig({
 })
 ```
 
-Wrap your client once:
+Wrap your client once, using the import that matches the driver:
 
 ```ts
-import { instrumentSqlInspector } from '#nuxt-sql-inspector'
-const pool = instrumentSqlInspector(new Pool({ connectionString }))
+import { inspectSql } from '#nuxt-sql-inspector/node-postgres'
+const pool = inspectSql(new Pool({ connectionString }))
+
+import { inspectSql } from '#nuxt-sql-inspector/postgres-js'
+const sql = inspectSql(postgres(process.env.DATABASE_URL!))
 ```
 
 Open `/__sql_queries` in development.

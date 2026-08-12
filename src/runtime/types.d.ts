@@ -1,7 +1,9 @@
-declare module '#nuxt-sql-inspector' {
-  export function instrumentSqlInspector<T = void>(client?: T): T
-  export function instrumentPg(): void
-  export function instrumentPostgresJs<T>(sql: T): T
+declare module '#nuxt-sql-inspector/node-postgres' {
+  export function inspectSql<T>(client: T): T
+}
+
+declare module '#nuxt-sql-inspector/postgres-js' {
+  export function inspectSql<T>(sql: T): T
 }
 
 declare module '@nuxt/schema' {

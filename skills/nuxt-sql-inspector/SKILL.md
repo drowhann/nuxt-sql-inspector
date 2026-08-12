@@ -21,14 +21,19 @@ export default defineNuxtConfig({
 })
 ```
 
-## Instrument the client (required)
+## Wrap the client (required)
+
+Import `inspectSql` from the subpath that matches the driver. Do not auto-import it.
 
 ```ts
-import { instrumentSqlInspector } from '#nuxt-sql-inspector'
+import { inspectSql } from '#nuxt-sql-inspector/node-postgres'
+const pool = inspectSql(new Pool({ connectionString }))
 
-const pool = instrumentSqlInspector(new Pool({ connectionString }))
-// or postgres.js: instrumentSqlInspector(postgres(url))
-// or after drizzle(url): instrumentSqlInspector(db.$client)
+import { inspectSql } from '#nuxt-sql-inspector/postgres-js'
+const sql = inspectSql(postgres(url))
+
+// after drizzle(url):
+inspectSql(db.$client)
 ```
 
 Do not auto-patch. Call once at pool/client creation.

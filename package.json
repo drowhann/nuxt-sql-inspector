@@ -19,6 +19,14 @@
     ".": {
       "types": "./dist/types.d.mts",
       "import": "./dist/module.mjs"
+    },
+    "./node-postgres": {
+      "types": "./dist/runtime/server/utils/inspect-pg.d.ts",
+      "import": "./dist/runtime/server/utils/inspect-pg.js"
+    },
+    "./postgres-js": {
+      "types": "./dist/runtime/server/utils/inspect-postgresjs.d.ts",
+      "import": "./dist/runtime/server/utils/inspect-postgresjs.js"
     }
   },
   "main": "./dist/module.mjs",
@@ -26,6 +34,12 @@
     "*": {
       ".": [
         "./dist/types.d.mts"
+      ],
+      "node-postgres": [
+        "./dist/runtime/server/utils/inspect-pg.d.ts"
+      ],
+      "postgres-js": [
+        "./dist/runtime/server/utils/inspect-postgresjs.d.ts"
       ]
     }
   },
