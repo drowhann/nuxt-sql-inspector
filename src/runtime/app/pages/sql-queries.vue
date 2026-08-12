@@ -204,6 +204,7 @@ onBeforeUnmount(() => {
             <span>{{ formatMs(q.durationMs) }}</span>
             <span v-if="q.error" class="bad">ERROR</span>
           </header>
+          <!-- eslint-disable-next-line vue/no-v-html -->
           <pre class="sql" v-html="highlightSql(q.sql)" />
           <pre class="params">Params: {{ JSON.stringify(q.params) }}</pre>
           <pre v-if="q.error" class="bad">{{ q.error }}</pre>
@@ -214,6 +215,7 @@ onBeforeUnmount(() => {
     <section v-if="backgroundQueries.length" class="bg">
       <h3>Background queries (no HTTP request)</h3>
       <article v-for="q in backgroundQueries" :key="q.id" class="query">
+        <!-- eslint-disable-next-line vue/no-v-html -->
         <pre class="sql" v-html="highlightSql(q.sql)" />
         <pre class="params">{{ formatMs(q.durationMs) }} · {{ JSON.stringify(q.params) }}</pre>
       </article>

@@ -8,7 +8,7 @@ import {
   extendPages,
 } from '@nuxt/kit'
 
-export interface SqlInspectorModuleOptions {
+export interface ModuleOptions {
   /**
    * When omitted, defaults to `nuxt.options.dev`.
    * Set `false` to disable even in development.
@@ -22,9 +22,11 @@ export interface SqlInspectorModuleOptions {
   maxRequests?: number
 }
 
-export default defineNuxtModule<SqlInspectorModuleOptions>({
+export type SqlInspectorModuleOptions = ModuleOptions
+
+export default defineNuxtModule<ModuleOptions>({
   meta: {
-    name: 'sql-inspector',
+    name: 'nuxt-sql-inspector',
     configKey: 'sqlInspector',
   },
   defaults: {

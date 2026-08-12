@@ -1,4 +1,4 @@
-# Nuxt dev/build outputs
+# Nuxt / Nitro
 .output
 .data
 .nuxt
@@ -6,7 +6,7 @@
 .cache
 dist
 
-# Node dependencies
+# Node
 node_modules
 
 # Logs
@@ -18,7 +18,10 @@ logs
 .fleet
 .idea
 
-# Local env files
+# Env
 .env
 .env.*
 !.env.example
+
+# Pack
+*.tgz

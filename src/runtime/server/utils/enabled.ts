@@ -1,11 +1,12 @@
 export function isSqlInspectorEnabled() {
   try {
     const cfg = useRuntimeConfig().sqlInspector as { enabled?: boolean } | undefined
-    if (cfg && cfg.enabled === false) return false
+    if (cfg?.enabled === true) return true
+    if (cfg?.enabled === false) return false
   } catch {
     // outside request / before runtime ready
   }
-  return import.meta.dev === true || process.dev === true
+  return import.meta.dev === true || import.meta.dev === true
 }
 
 export function getSqlInspectorConfig() {
