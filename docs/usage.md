@@ -2,7 +2,7 @@
 
 Call `inspectSql` **once** when you create the driver client. Import it from the subpath that matches the driver. The module does not auto-patch.
 
-Then open `/__sql_queries` in development.
+Then open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled.
 
 ## node-postgres
 

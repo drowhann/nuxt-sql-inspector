@@ -22,7 +22,7 @@ import { inspectSql } from '#nuxt-sql-inspector/postgres-js'
 const sql = inspectSql(postgres(process.env.DATABASE_URL!))
 ```
 
-Open `/__sql_queries` in development.
+Open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled.
 
 - [Installation](docs/installation.md)
 - [Usage](docs/usage.md) (node-postgres and postgres.js)

@@ -1,3 +1,4 @@
+import { addCustomTab } from '@nuxt/devtools-kit'
 import {
   addRouteMiddleware,
   addServerHandler,
@@ -106,5 +107,20 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.hook('prepare:types', ({ references }) => {
       references.push({ path: resolver.resolve('./runtime/types.d.ts') })
     })
+
+    const devtools = nuxt.options.devtools
+    const devtoolsEnabled = devtools !== false
+      && (typeof devtools !== 'object' || (devtools as { enabled?: boolean }).enabled !== false)
+    if (devtoolsEnabled) {
+      addCustomTab({
+        name: 'nuxt-sql-inspector',
+        title: 'SQL Inspector',
+        icon: 'carbon:data-base',
+        view: {
+          type: 'iframe',
+          src: path,
+        },
+      })
+    }
   },
 })

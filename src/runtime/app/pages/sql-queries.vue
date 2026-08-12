@@ -1,4 +1,6 @@
 <script setup lang="ts">
+definePageMeta({ layout: false })
+
 type SqlQueryEvent = {
   id: string
   requestId: string | null
