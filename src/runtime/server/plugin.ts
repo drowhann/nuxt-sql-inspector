@@ -17,9 +17,11 @@ export default defineNitroPlugin((nitroApp) => {
     const {
       apiBase = '/api/__sql_queries',
       path: uiPath = '/__sql_queries',
+      include,
+      exclude,
     } = getSqlInspectorConfig()
     const path = normalizePath(event.path || '/')
-    if (!shouldMonitor(path, apiBase, uiPath)) return
+    if (!shouldMonitor(path, { apiBase, uiPath, include, exclude })) return
 
     const requestId = randomUUID()
     const startedAt = Date.now()

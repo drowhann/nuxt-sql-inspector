@@ -19,6 +19,8 @@ declare module '@nuxt/schema' {
       path: string
       apiBase: string
       maxRequests: number
+      include?: string[]
+      exclude?: string[]
     }
   }
 }

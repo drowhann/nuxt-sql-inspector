@@ -16,6 +16,8 @@ export default defineNuxtConfig({
     // path: '/__sql_queries',
     // apiBase: '/api/__sql_queries',
     // maxRequests: 200,           // default 200, max 1000
+    // include: ['/api/**'],       // optional allowlist (omit = all eligible routes)
+    // exclude: ['/api/webhooks/**'],
   },
 })
 ```

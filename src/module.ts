@@ -27,6 +27,15 @@ export interface ModuleOptions {
    * Default: 200. Clamped to 1…1000.
    */
   maxRequests?: number
+  /**
+   * Glob patterns of paths to monitor (`*` one segment, `**` any depth).
+   * When omitted or empty, all paths are eligible (minus built-in denylist / `exclude`).
+   */
+  include?: string[]
+  /**
+   * Glob patterns always skipped (in addition to inspector UI/API and static assets).
+   */
+  exclude?: string[]
 }
 
 export type SqlInspectorModuleOptions = ModuleOptions
@@ -47,6 +56,8 @@ export default defineNuxtModule<ModuleOptions>({
     const path = options.path || '/__sql_queries'
     const apiBase = (options.apiBase || '/api/__sql_queries').replace(/\/$/, '')
     const maxRequests = clampMaxRequests(options.maxRequests)
+    const include = options.include?.length ? [...options.include] : undefined
+    const exclude = options.exclude?.length ? [...options.exclude] : undefined
 
     // Alias package subpaths so imports resolve in Nuxt/Nitro (and to noop when disabled).
     // Do not use `#…` — Node treats those as package.json "imports" and Nitro may leave them external.
@@ -73,6 +84,8 @@ export default defineNuxtModule<ModuleOptions>({
       path,
       apiBase,
       maxRequests,
+      include,
+      exclude,
     }
 
     nuxt.options.runtimeConfig.public ||= {}

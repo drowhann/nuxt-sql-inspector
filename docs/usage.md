@@ -2,7 +2,7 @@
 
 Call `inspectSql` **once** when you create the driver client. Import it from the subpath that matches the driver. The module does not auto-patch.
 
-Then open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Any server request can be tracked (`/api/**`, `server/routes/*`, etc.); it only appears in the list after at least one SQL query (so empty page renders stay hidden). In the playground, try `/ssr-demo` (SSR → `/api/users`) or `GET /server-demo`.
+Then open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Any server request can be tracked (`/api/**`, `server/routes/*`, etc.); it only appears in the list after at least one SQL query (so empty page renders stay hidden). Limit paths with `sqlInspector.include` / `exclude` (see [installation](./installation.md)). In the playground, try `/ssr-demo` (SSR → `/api/users`) or `GET /server-demo`.
 
 ## node-postgres
 

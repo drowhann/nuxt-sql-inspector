@@ -7,6 +7,15 @@ export function clampMaxRequests(n?: number): number {
   return Math.min(ABSOLUTE_MAX_REQUESTS, Math.max(1, v))
 }
 
+export type SqlInspectorRuntimeConfig = {
+  enabled?: boolean
+  path?: string
+  apiBase?: string
+  maxRequests?: number
+  include?: string[]
+  exclude?: string[]
+}
+
 export function isSqlInspectorEnabled() {
   try {
     const cfg = useRuntimeConfig().sqlInspector as { enabled?: boolean } | undefined
@@ -18,14 +27,9 @@ export function isSqlInspectorEnabled() {
   return import.meta.dev === true || import.meta.dev === true
 }
 
-export function getSqlInspectorConfig() {
+export function getSqlInspectorConfig(): SqlInspectorRuntimeConfig & { maxRequests: number } {
   try {
-    const raw = (useRuntimeConfig().sqlInspector || {}) as {
-      enabled?: boolean
-      path?: string
-      apiBase?: string
-      maxRequests?: number
-    }
+    const raw = (useRuntimeConfig().sqlInspector || {}) as SqlInspectorRuntimeConfig
     return {
       ...raw,
       maxRequests: clampMaxRequests(raw.maxRequests),
