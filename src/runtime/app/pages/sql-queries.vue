@@ -36,9 +36,56 @@ const selectedId = ref<string | null>(null)
 const connected = ref(false)
 const error = ref('')
 
+const pathFilter = ref('')
+const methodFilter = ref('')
+const statusFilter = ref('')
+type SortKey = 'request' | 'sql' | 'queries' | 'time'
+const sortKey = ref<SortKey>('time')
+const sortDir = ref<'asc' | 'desc'>('desc')
+
 const selected = computed(() =>
   requests.value.find((r) => r.id === selectedId.value) || null,
 )
+
+const methodOptions = computed(() =>
+  [...new Set(requests.value.map((r) => r.method))].sort(),
+)
+
+const filteredRequests = computed(() => {
+  const pathQ = pathFilter.value.trim().toLowerCase()
+  const method = methodFilter.value
+  const status = statusFilter.value.trim()
+
+  let list = requests.value.filter((r) => {
+    if (pathQ && !r.path.toLowerCase().includes(pathQ)) return false
+    if (method && r.method !== method) return false
+    if (status) {
+      if (r.statusCode == null) return false
+      if (!String(r.statusCode).startsWith(status)) return false
+    }
+    return true
+  })
+
+  const dir = sortDir.value === 'asc' ? 1 : -1
+  return [...list].sort((a, b) => {
+    let av = 0
+    let bv = 0
+    if (sortKey.value === 'request') {
+      av = a.durationMs ?? -1
+      bv = b.durationMs ?? -1
+    } else if (sortKey.value === 'sql') {
+      av = sqlTotalMs(a)
+      bv = sqlTotalMs(b)
+    } else if (sortKey.value === 'queries') {
+      av = a.queries.length
+      bv = b.queries.length
+    } else {
+      av = a.startedAt
+      bv = b.startedAt
+    }
+    return (av - bv) * dir
+  })
+})
 
 const SQL_KEYWORDS = /\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|AND|OR|JOIN|LEFT|RIGHT|INNER|OUTER|ON|INTO|VALUES|SET|ORDER|BY|GROUP|LIMIT|OFFSET|RETURNING|AS|COUNT|DISTINCT|NULL|TRUE|FALSE|ASC|DESC|IN|NOT|IS|LIKE|ILIKE|BETWEEN|EXISTS|CASE|WHEN|THEN|ELSE|END|WITH|UNION|ALL|CREATE|TABLE|PRIMARY|KEY|DEFAULT|SERIAL|TEXT|TIMESTAMP)\b/gi
 
@@ -61,6 +108,20 @@ function formatMs(ms: number | null) {
 
 function sqlTotalMs(req: RequestEvent) {
   return req.queries.reduce((sum, q) => sum + q.durationMs, 0)
+}
+
+function toggleSort(key: SortKey) {
+  if (sortKey.value === key) {
+    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortKey.value = key
+    sortDir.value = 'desc'
+  }
+}
+
+function sortMark(key: SortKey) {
+  if (sortKey.value !== key) return ''
+  return sortDir.value === 'asc' ? ' ↑' : ' ↓'
 }
 
 function upsertRequest(req: RequestEvent) {
@@ -168,13 +229,31 @@ onBeforeUnmount(() => {
           <NuxtLink to="/">home</NuxtLink>
           ·
           <span :class="connected ? 'ok' : 'bad'">{{ connected ? 'live' : 'disconnected' }}</span>
-          · {{ requests.length }} requests
+          · {{ filteredRequests.length }}/{{ requests.length }} requests
         </p>
       </div>
       <button type="button" @click="clearLogs">Clear logs</button>
     </header>
 
     <p v-if="error" class="bad">{{ error }}</p>
+
+    <div class="filters">
+      <label>
+        Path
+        <input v-model="pathFilter" type="search" placeholder="/api/…" />
+      </label>
+      <label>
+        Method
+        <select v-model="methodFilter">
+          <option value="">All</option>
+          <option v-for="m in methodOptions" :key="m" :value="m">{{ m }}</option>
+        </select>
+      </label>
+      <label>
+        Status
+        <input v-model="statusFilter" type="search" placeholder="200, 4…" />
+      </label>
+    </div>
 
     <div class="layout">
       <section class="list">
@@ -184,14 +263,15 @@ onBeforeUnmount(() => {
               <th>Method</th>
               <th>Path</th>
               <th>Status</th>
-              <th>Request</th>
-              <th>SQL</th>
-              <th>Time</th>
+              <th class="sortable" @click="toggleSort('request')">Request{{ sortMark('request') }}</th>
+              <th class="sortable" @click="toggleSort('sql')">SQL{{ sortMark('sql') }}</th>
+              <th class="sortable" @click="toggleSort('queries')">Queries{{ sortMark('queries') }}</th>
+              <th class="sortable" @click="toggleSort('time')">Time{{ sortMark('time') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr
-              v-for="req in requests"
+              v-for="req in filteredRequests"
               :key="req.id"
               :class="{ active: req.id === selectedId }"
               @click="selectedId = req.id"
@@ -200,14 +280,12 @@ onBeforeUnmount(() => {
               <td class="path">{{ req.path }}</td>
               <td>{{ req.statusCode ?? '…' }}</td>
               <td>{{ formatMs(req.durationMs) }}</td>
-              <td>
-                {{ formatMs(sqlTotalMs(req)) }}
-                <span class="sub">({{ req.queries.length }})</span>
-              </td>
+              <td>{{ formatMs(sqlTotalMs(req)) }}</td>
+              <td>{{ req.queries.length }}</td>
               <td>{{ formatTime(req.startedAt) }}</td>
             </tr>
-            <tr v-if="!requests.length">
-              <td colspan="6" class="empty">No API requests yet.</td>
+            <tr v-if="!filteredRequests.length">
+              <td colspan="7" class="empty">{{ requests.length ? 'No matching requests.' : 'No API requests yet.' }}</td>
             </tr>
           </tbody>
         </table>
@@ -277,6 +355,29 @@ button {
   border: 1px solid #333;
   background: #fff;
 }
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin-bottom: 0.75rem;
+  align-items: flex-end;
+}
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  color: #555;
+  font-size: 11px;
+}
+.filters input,
+.filters select {
+  font: inherit;
+  font-size: 13px;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid #ccc;
+  background: #fff;
+  min-width: 8rem;
+}
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -301,11 +402,12 @@ th, td {
   white-space: nowrap;
 }
 th { background: #efeee9; position: sticky; top: 0; }
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { background: #e4e3dd; }
 tbody tr { cursor: pointer; }
 tbody tr:hover { background: #f3f7ff; }
 tbody tr.active { background: #e6eefc; }
 .path { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
-.sub { font-size: 0.85em; color: #777; line-height: 1.2; }
 .empty { color: #777; white-space: normal; }
 .detail {
   border: 1px solid #ccc;
