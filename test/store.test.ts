@@ -1,7 +1,13 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 vi.stubGlobal('useRuntimeConfig', () => ({
-  sqlInspector: { maxRequests: 200, enabled: true, path: '/__sql_queries', apiBase: '/api/__sql_queries' },
+  sqlInspector: {
+    maxRequests: 200,
+    enabled: true,
+    forceEnableInProduction: true,
+    path: '/__sql_queries',
+    apiBase: '/api/__sql_queries',
+  },
 }))
 
 const {
@@ -16,6 +22,7 @@ const {
   ABSOLUTE_MAX_REQUESTS,
   clampMaxRequests,
   DEFAULT_MAX_REQUESTS,
+  resolveSqlInspectorEnabled,
 } = await import('../src/runtime/server/utils/enabled')
 
 describe('inspector store', () => {
@@ -90,5 +97,23 @@ describe('clampMaxRequests', () => {
     expect(clampMaxRequests(-10)).toBe(1)
     expect(clampMaxRequests(99999)).toBe(ABSOLUTE_MAX_REQUESTS)
     expect(clampMaxRequests(Number.NaN)).toBe(DEFAULT_MAX_REQUESTS)
+  })
+})
+
+describe('resolveSqlInspectorEnabled', () => {
+  it('defaults to isDev and blocks production without force', () => {
+    expect(resolveSqlInspectorEnabled({ isDev: true })).toBe(true)
+    expect(resolveSqlInspectorEnabled({ isDev: false })).toBe(false)
+    expect(resolveSqlInspectorEnabled({ enabled: true, isDev: false })).toBe(false)
+    expect(resolveSqlInspectorEnabled({
+      enabled: true,
+      forceEnableInProduction: true,
+      isDev: false,
+    })).toBe(true)
+    expect(resolveSqlInspectorEnabled({
+      enabled: false,
+      forceEnableInProduction: true,
+      isDev: true,
+    })).toBe(false)
   })
 })

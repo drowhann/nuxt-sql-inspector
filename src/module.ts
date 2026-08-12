@@ -10,14 +10,21 @@ import {
 import {
   clampMaxRequests,
   DEFAULT_MAX_REQUESTS,
+  resolveSqlInspectorEnabled,
 } from './runtime/server/utils/enabled'
 
 export interface ModuleOptions {
   /**
    * When omitted, defaults to `nuxt.options.dev`.
    * Set `false` to disable even in development.
+   * In production builds, also requires `forceEnableInProduction: true`.
    */
   enabled?: boolean
+  /**
+   * Allow the inspector when not in `nuxt.options.dev` (production / test builds).
+   * Default: false. Required together with `enabled: true` outside development.
+   */
+  forceEnableInProduction?: boolean
   /** UI route path. Default: `/__sql_queries` */
   path?: string
   /** API base path. Default: `/api/__sql_queries` */
@@ -51,7 +58,12 @@ export default defineNuxtModule<ModuleOptions>({
     maxRequests: DEFAULT_MAX_REQUESTS,
   },
   setup(options, nuxt) {
-    const enabled = options.enabled ?? nuxt.options.dev
+    const forceEnableInProduction = options.forceEnableInProduction === true
+    const enabled = resolveSqlInspectorEnabled({
+      enabled: options.enabled,
+      forceEnableInProduction,
+      isDev: nuxt.options.dev,
+    })
     const resolver = createResolver(import.meta.url)
     const path = options.path || '/__sql_queries'
     const apiBase = (options.apiBase || '/api/__sql_queries').replace(/\/$/, '')
@@ -81,6 +93,7 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.options.runtimeConfig.sqlInspector = {
       ...(nuxt.options.runtimeConfig.sqlInspector as object | undefined),
       enabled,
+      forceEnableInProduction,
       path,
       apiBase,
       maxRequests,
@@ -93,6 +106,7 @@ export default defineNuxtModule<ModuleOptions>({
       ...((nuxt.options.runtimeConfig.public as any).sqlInspector || {}),
       path,
       apiBase,
+      allowAccess: enabled,
     }
 
     nuxt.hook('prepare:types', ({ references }) => {

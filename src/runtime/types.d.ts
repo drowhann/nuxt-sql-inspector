@@ -11,11 +11,13 @@ declare module '@nuxt/schema' {
     sqlInspector: {
       path: string
       apiBase: string
+      allowAccess: boolean
     }
   }
   interface RuntimeConfig {
     sqlInspector: {
       enabled: boolean
+      forceEnableInProduction: boolean
       path: string
       apiBase: string
       maxRequests: number

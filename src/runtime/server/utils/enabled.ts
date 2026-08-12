@@ -7,8 +7,19 @@ export function clampMaxRequests(n?: number): number {
   return Math.min(ABSOLUTE_MAX_REQUESTS, Math.max(1, v))
 }
 
+/** Build-time / config rule: production needs `forceEnableInProduction`. */
+export function resolveSqlInspectorEnabled(opts: {
+  enabled?: boolean
+  forceEnableInProduction?: boolean
+  isDev: boolean
+}): boolean {
+  const wantsOn = opts.enabled ?? opts.isDev
+  return Boolean(wantsOn) && (opts.isDev || opts.forceEnableInProduction === true)
+}
+
 export type SqlInspectorRuntimeConfig = {
   enabled?: boolean
+  forceEnableInProduction?: boolean
   path?: string
   apiBase?: string
   maxRequests?: number
@@ -18,13 +29,14 @@ export type SqlInspectorRuntimeConfig = {
 
 export function isSqlInspectorEnabled() {
   try {
-    const cfg = useRuntimeConfig().sqlInspector as { enabled?: boolean } | undefined
-    if (cfg?.enabled === true) return true
-    if (cfg?.enabled === false) return false
+    const cfg = useRuntimeConfig().sqlInspector as SqlInspectorRuntimeConfig | undefined
+    if (cfg?.enabled !== true) return false
+    if (import.meta.dev) return true
+    return cfg.forceEnableInProduction === true
   } catch {
     // outside request / before runtime ready
   }
-  return import.meta.dev === true || import.meta.dev === true
+  return import.meta.dev === true
 }
 
 export function getSqlInspectorConfig(): SqlInspectorRuntimeConfig & { maxRequests: number } {
@@ -37,6 +49,7 @@ export function getSqlInspectorConfig(): SqlInspectorRuntimeConfig & { maxReques
   } catch {
     return {
       enabled: true,
+      forceEnableInProduction: false,
       path: '/__sql_queries',
       apiBase: '/api/__sql_queries',
       maxRequests: DEFAULT_MAX_REQUESTS,

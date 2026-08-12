@@ -4,6 +4,7 @@ vi.stubGlobal('useRuntimeConfig', () => ({
   sqlInspector: {
     maxRequests: 200,
     enabled: true,
+    forceEnableInProduction: true,
     path: '/__sql_queries',
     apiBase: '/api/__sql_queries',
   },
