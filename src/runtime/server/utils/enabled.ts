@@ -25,6 +25,7 @@ export type SqlInspectorRuntimeConfig = {
   maxRequests?: number
   include?: string[]
   exclude?: string[]
+  redactParams?: boolean
 }
 
 export function isSqlInspectorEnabled() {
@@ -39,12 +40,16 @@ export function isSqlInspectorEnabled() {
   return import.meta.dev === true
 }
 
-export function getSqlInspectorConfig(): SqlInspectorRuntimeConfig & { maxRequests: number } {
+export function getSqlInspectorConfig(): SqlInspectorRuntimeConfig & {
+  maxRequests: number
+  redactParams: boolean
+} {
   try {
     const raw = (useRuntimeConfig().sqlInspector || {}) as SqlInspectorRuntimeConfig
     return {
       ...raw,
       maxRequests: clampMaxRequests(raw.maxRequests),
+      redactParams: raw.redactParams !== false,
     }
   } catch {
     return {
@@ -53,6 +58,7 @@ export function getSqlInspectorConfig(): SqlInspectorRuntimeConfig & { maxReques
       path: '/__sql_queries',
       apiBase: '/api/__sql_queries',
       maxRequests: DEFAULT_MAX_REQUESTS,
+      redactParams: true,
     }
   }
 }

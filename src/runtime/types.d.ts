@@ -23,6 +23,7 @@ declare module '@nuxt/schema' {
       maxRequests: number
       include?: string[]
       exclude?: string[]
+      redactParams: boolean
     }
   }
 }

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { DEFAULT_MAX_REQUESTS, getSqlInspectorConfig } from './enabled'
+import { redactParams as redactParamList } from './redact-params'
 import type {
   InspectorBusEvent,
   InspectorSnapshot,
@@ -52,6 +53,13 @@ function truncateParams(params: unknown[]): unknown[] {
     }
     return p
   })
+}
+
+function sanitizeParams(params: unknown[]): unknown[] {
+  if (getSqlInspectorConfig().redactParams !== false) {
+    return redactParamList(params)
+  }
+  return truncateParams(params)
 }
 
 function cloneRequest(req: RequestEvent): RequestEvent {
@@ -141,7 +149,7 @@ export function recordQuery(input: {
     id: randomUUID(),
     requestId: input.requestId,
     sql: input.sql,
-    params: truncateParams(input.params),
+    params: sanitizeParams(input.params),
     durationMs: input.durationMs,
     timestamp: Date.now(),
     error: input.error,

@@ -43,6 +43,11 @@ export interface ModuleOptions {
    * Glob patterns always skipped (in addition to inspector UI/API and static assets).
    */
   exclude?: string[]
+  /**
+   * When true (default), store param type/length only — not raw bind values.
+   * Set `false` to keep raw params (strings still truncated).
+   */
+  redactParams?: boolean
 }
 
 export type SqlInspectorModuleOptions = ModuleOptions
@@ -56,6 +61,7 @@ export default defineNuxtModule<ModuleOptions>({
     path: '/__sql_queries',
     apiBase: '/api/__sql_queries',
     maxRequests: DEFAULT_MAX_REQUESTS,
+    redactParams: true,
   },
   setup(options, nuxt) {
     const forceEnableInProduction = options.forceEnableInProduction === true
@@ -70,6 +76,7 @@ export default defineNuxtModule<ModuleOptions>({
     const maxRequests = clampMaxRequests(options.maxRequests)
     const include = options.include?.length ? [...options.include] : undefined
     const exclude = options.exclude?.length ? [...options.exclude] : undefined
+    const redactParams = options.redactParams !== false
 
     // Alias package subpaths so imports resolve in Nuxt/Nitro (and to noop when disabled).
     // Do not use `#…` — Node treats those as package.json "imports" and Nitro may leave them external.
@@ -99,6 +106,7 @@ export default defineNuxtModule<ModuleOptions>({
       maxRequests,
       include,
       exclude,
+      redactParams,
     }
 
     nuxt.options.runtimeConfig.public ||= {}

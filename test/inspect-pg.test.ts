@@ -79,7 +79,7 @@ describe('inspectSql (node-postgres)', () => {
 
     const q = getSnapshot().requests.find((r) => r.id === 'req-2')?.queries[0]
     expect(q?.sql).toBe('SELECT $1')
-    expect(q?.params).toEqual([42])
+    expect(q?.params).toEqual([{ type: 'number' }])
   })
 
   it('sends unmatched queries to background when no request id', async () => {
