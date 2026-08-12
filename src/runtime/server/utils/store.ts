@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { getSqlInspectorConfig } from './enabled'
+import { DEFAULT_MAX_REQUESTS, getSqlInspectorConfig } from './enabled'
 import type {
   InspectorBusEvent,
   InspectorSnapshot,
@@ -19,7 +19,7 @@ const backgroundQueries: SqlQueryEvent[] = []
 const listeners = new Set<Listener>()
 
 function maxRequests() {
-  return getSqlInspectorConfig().maxRequests ?? 200
+  return getSqlInspectorConfig().maxRequests ?? DEFAULT_MAX_REQUESTS
 }
 
 function truncateParams(params: unknown[]): unknown[] {

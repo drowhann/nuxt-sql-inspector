@@ -15,7 +15,7 @@ export default defineNuxtConfig({
     // enabled: true,              // default: nuxt.options.dev
     // path: '/__sql_queries',
     // apiBase: '/api/__sql_queries',
-    // maxRequests: 200,
+    // maxRequests: 200,           // default 200, max 1000
   },
 })
 ```

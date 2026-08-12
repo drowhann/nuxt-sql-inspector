@@ -7,6 +7,10 @@ import {
   defineNuxtModule,
   extendPages,
 } from '@nuxt/kit'
+import {
+  clampMaxRequests,
+  DEFAULT_MAX_REQUESTS,
+} from './runtime/server/utils/enabled'
 
 export interface ModuleOptions {
   /**
@@ -18,7 +22,10 @@ export interface ModuleOptions {
   path?: string
   /** API base path. Default: `/api/__sql_queries` */
   apiBase?: string
-  /** Max retained HTTP request records. Default: 200 */
+  /**
+   * Max retained HTTP request records (ring buffer).
+   * Default: 200. Clamped to 1…1000.
+   */
   maxRequests?: number
 }
 
@@ -32,7 +39,7 @@ export default defineNuxtModule<ModuleOptions>({
   defaults: {
     path: '/__sql_queries',
     apiBase: '/api/__sql_queries',
-    maxRequests: 200,
+    maxRequests: DEFAULT_MAX_REQUESTS,
   },
   setup(options, nuxt) {
     const enabled = options.enabled ?? nuxt.options.dev
@@ -41,7 +48,7 @@ export default defineNuxtModule<ModuleOptions>({
     const resolver = createResolver(import.meta.url)
     const path = options.path || '/__sql_queries'
     const apiBase = (options.apiBase || '/api/__sql_queries').replace(/\/$/, '')
-    const maxRequests = options.maxRequests ?? 200
+    const maxRequests = clampMaxRequests(options.maxRequests)
 
     nuxt.options.experimental ||= {}
     nuxt.options.experimental.asyncContext = true

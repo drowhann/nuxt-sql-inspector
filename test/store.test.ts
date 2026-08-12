@@ -10,6 +10,11 @@ const {
   recordQuery,
   startRequest,
 } = await import('../src/runtime/server/utils/store')
+const {
+  ABSOLUTE_MAX_REQUESTS,
+  clampMaxRequests,
+  DEFAULT_MAX_REQUESTS,
+} = await import('../src/runtime/server/utils/enabled')
 
 describe('inspector store', () => {
   beforeAll(() => {
@@ -41,5 +46,16 @@ describe('inspector store', () => {
     expect(newest?.queries).toHaveLength(1)
     expect(newest?.queries[0]?.requestId).toBe('r-204')
     clearStore()
+  })
+})
+
+describe('clampMaxRequests', () => {
+  it('defaults, clamps to 1…1000', () => {
+    expect(clampMaxRequests()).toBe(DEFAULT_MAX_REQUESTS)
+    expect(clampMaxRequests(50)).toBe(50)
+    expect(clampMaxRequests(0)).toBe(1)
+    expect(clampMaxRequests(-10)).toBe(1)
+    expect(clampMaxRequests(99999)).toBe(ABSOLUTE_MAX_REQUESTS)
+    expect(clampMaxRequests(Number.NaN)).toBe(DEFAULT_MAX_REQUESTS)
   })
 })

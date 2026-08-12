@@ -44,4 +44,4 @@ Do not auto-patch. Call once at pool/client creation.
 
 ## Options
 
-`sqlInspector.enabled` (default: `nuxt.options.dev`), `path`, `apiBase`, `maxRequests`.
+`sqlInspector.enabled` (default: `nuxt.options.dev`), `path`, `apiBase`, `maxRequests` (default 200, max 1000).
