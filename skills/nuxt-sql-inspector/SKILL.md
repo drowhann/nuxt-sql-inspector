@@ -36,7 +36,7 @@ const sql = inspectSql(postgres(url))
 inspectSql(db.$client)
 ```
 
-Do not auto-patch. Call once at pool/client creation.
+Do not auto-patch. Call once at pool/client creation. When the module is disabled (production), the same imports resolve to a no-op `inspectSql`.
 
 ## Open
 

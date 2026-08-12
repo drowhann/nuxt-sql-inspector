@@ -20,7 +20,7 @@ export default defineNuxtConfig({
 })
 ```
 
-The module is a no-op in production unless you set `sqlInspector.enabled: true` (not recommended).
+The module is a no-op in production unless you set `sqlInspector.enabled: true` (not recommended). `#nuxt-sql-inspector/node-postgres` and `#nuxt-sql-inspector/postgres-js` still resolve to an identity `inspectSql`, so production / Cloudflare builds that keep those imports do not break.
 
 ## Next
 

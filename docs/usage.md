@@ -33,4 +33,4 @@ const db2 = drizzle(process.env.DATABASE_URL!)
 inspectSql(db2.$client)
 ```
 
-`#nuxt-sql-inspector/node-postgres` and `#nuxt-sql-inspector/postgres-js` are Nitro aliases registered by the module. They are available in server code only.
+`#nuxt-sql-inspector/node-postgres` and `#nuxt-sql-inspector/postgres-js` are Nitro aliases registered by the module. They are available in server code only. When the inspector is disabled (typical production builds), those aliases still resolve and `inspectSql` is a no-op.

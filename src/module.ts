@@ -43,19 +43,33 @@ export default defineNuxtModule<ModuleOptions>({
   },
   setup(options, nuxt) {
     const enabled = options.enabled ?? nuxt.options.dev
-    if (!enabled) return
-
     const resolver = createResolver(import.meta.url)
     const path = options.path || '/__sql_queries'
     const apiBase = (options.apiBase || '/api/__sql_queries').replace(/\/$/, '')
     const maxRequests = clampMaxRequests(options.maxRequests)
 
-    nuxt.options.experimental ||= {}
-    nuxt.options.experimental.asyncContext = true
+    // Always alias so `inspectSql` imports resolve in production / Cloudflare builds.
+    // When disabled, point at a noop that does not import pg / node:async_hooks.
+    const inspectNoop = resolver.resolve('./runtime/server/utils/inspect-noop')
+    const inspectPg = enabled
+      ? resolver.resolve('./runtime/server/utils/inspect-pg')
+      : inspectNoop
+    const inspectPostgresJs = enabled
+      ? resolver.resolve('./runtime/server/utils/inspect-postgresjs')
+      : inspectNoop
+
+    nuxt.options.alias ||= {}
+    nuxt.options.alias['#nuxt-sql-inspector/node-postgres'] = inspectPg
+    nuxt.options.alias['#nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
+
+    nuxt.options.nitro ||= {}
+    nuxt.options.nitro.alias ||= {}
+    nuxt.options.nitro.alias['#nuxt-sql-inspector/node-postgres'] = inspectPg
+    nuxt.options.nitro.alias['#nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
 
     nuxt.options.runtimeConfig.sqlInspector = {
       ...(nuxt.options.runtimeConfig.sqlInspector as object | undefined),
-      enabled: true,
+      enabled,
       path,
       apiBase,
       maxRequests,
@@ -68,16 +82,14 @@ export default defineNuxtModule<ModuleOptions>({
       apiBase,
     }
 
-    const inspectPg = resolver.resolve('./runtime/server/utils/inspect-pg')
-    const inspectPostgresJs = resolver.resolve('./runtime/server/utils/inspect-postgresjs')
-    nuxt.options.alias ||= {}
-    nuxt.options.alias['#nuxt-sql-inspector/node-postgres'] = inspectPg
-    nuxt.options.alias['#nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
+    nuxt.hook('prepare:types', ({ references }) => {
+      references.push({ path: resolver.resolve('./runtime/types.d.ts') })
+    })
 
-    nuxt.options.nitro ||= {}
-    nuxt.options.nitro.alias ||= {}
-    nuxt.options.nitro.alias['#nuxt-sql-inspector/node-postgres'] = inspectPg
-    nuxt.options.nitro.alias['#nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
+    if (!enabled) return
+
+    nuxt.options.experimental ||= {}
+    nuxt.options.experimental.asyncContext = true
 
     addServerPlugin(resolver.resolve('./runtime/server/plugin'))
 
@@ -109,10 +121,6 @@ export default defineNuxtModule<ModuleOptions>({
       name: 'sql-inspector-dev-only',
       path: resolver.resolve('./runtime/app/middleware/sql-inspector-dev-only'),
       global: true,
-    })
-
-    nuxt.hook('prepare:types', ({ references }) => {
-      references.push({ path: resolver.resolve('./runtime/types.d.ts') })
     })
 
     const devtools = nuxt.options.devtools
