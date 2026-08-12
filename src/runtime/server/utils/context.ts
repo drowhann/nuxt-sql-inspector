@@ -4,17 +4,21 @@ export type RequestAlsStore = {
   requestId: string
 }
 
-export const requestAls = new AsyncLocalStorage<RequestAlsStore>()
+const ALS_KEY = '__nuxt_sql_inspector_als__'
+const g = globalThis as typeof globalThis & {
+  [ALS_KEY]?: AsyncLocalStorage<RequestAlsStore>
+}
+
+export const requestAls = g[ALS_KEY] ?? (g[ALS_KEY] = new AsyncLocalStorage<RequestAlsStore>())
 
 export function getCurrentRequestId(): string | null {
-  const fromAls = requestAls.getStore()?.requestId
-  if (fromAls) return fromAls
-
   try {
     const event = useEvent()
     const ctx = event.context.sqlInspector as { requestId?: string } | undefined
-    return ctx?.requestId ?? null
+    if (ctx?.requestId) return ctx.requestId
   } catch {
-    return null
+    // outside request event
   }
+
+  return requestAls.getStore()?.requestId ?? null
 }

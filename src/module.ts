@@ -48,8 +48,8 @@ export default defineNuxtModule<ModuleOptions>({
     const apiBase = (options.apiBase || '/api/__sql_queries').replace(/\/$/, '')
     const maxRequests = clampMaxRequests(options.maxRequests)
 
-    // Always alias so `inspectSql` imports resolve in production / Cloudflare builds.
-    // When disabled, point at a noop that does not import pg / node:async_hooks.
+    // Alias package subpaths so imports resolve in Nuxt/Nitro (and to noop when disabled).
+    // Do not use `#…` — Node treats those as package.json "imports" and Nitro may leave them external.
     const inspectNoop = resolver.resolve('./runtime/server/utils/inspect-noop')
     const inspectPg = enabled
       ? resolver.resolve('./runtime/server/utils/inspect-pg')
@@ -59,13 +59,13 @@ export default defineNuxtModule<ModuleOptions>({
       : inspectNoop
 
     nuxt.options.alias ||= {}
-    nuxt.options.alias['#nuxt-sql-inspector/node-postgres'] = inspectPg
-    nuxt.options.alias['#nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
+    nuxt.options.alias['nuxt-sql-inspector/node-postgres'] = inspectPg
+    nuxt.options.alias['nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
 
     nuxt.options.nitro ||= {}
     nuxt.options.nitro.alias ||= {}
-    nuxt.options.nitro.alias['#nuxt-sql-inspector/node-postgres'] = inspectPg
-    nuxt.options.nitro.alias['#nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
+    nuxt.options.nitro.alias['nuxt-sql-inspector/node-postgres'] = inspectPg
+    nuxt.options.nitro.alias['nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
 
     nuxt.options.runtimeConfig.sqlInspector = {
       ...(nuxt.options.runtimeConfig.sqlInspector as object | undefined),

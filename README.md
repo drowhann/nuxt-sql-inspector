@@ -15,10 +15,10 @@ export default defineNuxtConfig({
 Wrap your client once, using the import that matches the driver:
 
 ```ts
-import { inspectSql } from '#nuxt-sql-inspector/node-postgres'
+import { inspectSql } from 'nuxt-sql-inspector/node-postgres'
 const pool = inspectSql(new Pool({ connectionString }))
 
-import { inspectSql } from '#nuxt-sql-inspector/postgres-js'
+import { inspectSql } from 'nuxt-sql-inspector/postgres-js'
 const sql = inspectSql(postgres(process.env.DATABASE_URL!))
 ```
 

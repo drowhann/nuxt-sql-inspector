@@ -2,26 +2,24 @@ import { randomUUID } from 'node:crypto'
 import { defineNitroPlugin } from 'nitropack/runtime'
 import { requestAls } from './utils/context'
 import { getSqlInspectorConfig, isSqlInspectorEnabled } from './utils/enabled'
-import { finishRequest, startRequest } from './utils/store'
+import { shouldMonitor } from './utils/should-monitor'
+import { finishRequest, trackRequest } from './utils/store'
 
 function normalizePath(path: string) {
   const q = path.indexOf('?')
   return q === -1 ? path : path.slice(0, q)
 }
 
-function shouldMonitor(path: string, apiBase: string) {
-  if (!path.startsWith('/api/')) return false
-  if (path === apiBase || path.startsWith(`${apiBase}/`)) return false
-  return true
-}
-
 export default defineNitroPlugin((nitroApp) => {
   if (!isSqlInspectorEnabled()) return
 
   nitroApp.hooks.hook('request', (event) => {
-    const { apiBase = '/api/__sql_queries' } = getSqlInspectorConfig()
+    const {
+      apiBase = '/api/__sql_queries',
+      path: uiPath = '/__sql_queries',
+    } = getSqlInspectorConfig()
     const path = normalizePath(event.path || '/')
-    if (!shouldMonitor(path, apiBase)) return
+    if (!shouldMonitor(path, apiBase, uiPath)) return
 
     const requestId = randomUUID()
     const startedAt = Date.now()
@@ -35,7 +33,7 @@ export default defineNitroPlugin((nitroApp) => {
 
     requestAls.enterWith({ requestId })
 
-    startRequest({
+    trackRequest({
       id: requestId,
       method: event.method || 'GET',
       path,

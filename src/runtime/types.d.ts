@@ -1,8 +1,8 @@
-declare module '#nuxt-sql-inspector/node-postgres' {
+declare module 'nuxt-sql-inspector/node-postgres' {
   export function inspectSql<T>(client: T): T
 }
 
-declare module '#nuxt-sql-inspector/postgres-js' {
+declare module 'nuxt-sql-inspector/postgres-js' {
   export function inspectSql<T>(sql: T): T
 }
 

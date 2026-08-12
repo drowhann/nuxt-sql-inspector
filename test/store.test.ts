@@ -9,6 +9,8 @@ const {
   getSnapshot,
   recordQuery,
   startRequest,
+  trackRequest,
+  finishRequest,
 } = await import('../src/runtime/server/utils/store')
 const {
   ABSOLUTE_MAX_REQUESTS,
@@ -45,6 +47,37 @@ describe('inspector store', () => {
     const newest = getSnapshot().requests.find((r) => r.id === 'r-204')
     expect(newest?.queries).toHaveLength(1)
     expect(newest?.queries[0]?.requestId).toBe('r-204')
+    clearStore()
+  })
+
+  it('only lists a tracked request after the first SQL query', () => {
+    clearStore()
+    trackRequest({
+      id: 'pending-1',
+      method: 'GET',
+      path: '/ssr-demo',
+      startedAt: Date.now(),
+    })
+    expect(getSnapshot().requests).toHaveLength(0)
+
+    finishRequest({ id: 'pending-1', statusCode: 200, durationMs: 1 })
+    expect(getSnapshot().requests).toHaveLength(0)
+
+    trackRequest({
+      id: 'pending-2',
+      method: 'GET',
+      path: '/server-demo',
+      startedAt: Date.now(),
+    })
+    recordQuery({
+      requestId: 'pending-2',
+      sql: 'SELECT 1',
+      params: [],
+      durationMs: 1,
+    })
+    expect(getSnapshot().requests).toHaveLength(1)
+    expect(getSnapshot().requests[0]?.path).toBe('/server-demo')
+    expect(getSnapshot().requests[0]?.queries).toHaveLength(1)
     clearStore()
   })
 })

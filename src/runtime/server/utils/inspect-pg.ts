@@ -1,10 +1,9 @@
-import pg from 'pg'
 import type { QueryResult, QueryResultRow } from 'pg'
 import { getCurrentRequestId } from './context'
 import { isSqlInspectorEnabled } from './enabled'
 import { recordQuery } from './store'
 
-const PG_INSPECTED = Symbol.for('sql-inspector.client-query')
+const PG_INSPECTED = Symbol.for('sql-inspector.pg-query')
 
 function extractSqlAndParams(args: unknown[]): { sql: string; params: unknown[] } {
   const first = args[0]
@@ -28,21 +27,27 @@ function extractSqlAndParams(args: unknown[]): { sql: string; params: unknown[] 
   return { sql: String(first), params: [] }
 }
 
-function patchClientQuery() {
-  const proto = pg.Client.prototype as typeof pg.Client.prototype & {
-    [PG_INSPECTED]?: boolean
-  }
-  if (proto[PG_INSPECTED]) return
+/**
+ * Wrap the Pool/Client instance `.query` (not Client.prototype).
+ * Pool.query is invoked while still in the Nitro request context; the
+ * internal Client checkout runs later and would lose useEvent()/ALS.
+ */
+export function inspectSql<T>(client: T): T {
+  if (!isSqlInspectorEnabled()) return client
 
-  const originalQuery = proto.query
+  const c = client as any
+  if (!c || typeof c.query !== 'function' || c[PG_INSPECTED]) return client
 
-  proto.query = function inspectedQuery(this: pg.Client, ...args: any[]) {
+  const originalQuery = c.query.bind(c)
+
+  c.query = function inspectedQuery(...args: any[]) {
     if (!isSqlInspectorEnabled()) {
-      return (originalQuery as any).apply(this, args)
+      return originalQuery(...args)
     }
 
-    const { sql, params } = extractSqlAndParams(args)
+    // Capture before Pool does async client checkout
     const requestId = getCurrentRequestId()
+    const { sql, params } = extractSqlAndParams(args)
     const start = performance.now()
     const maybeCallback = typeof args[args.length - 1] === 'function'
       ? (args[args.length - 1] as (err: Error, result: QueryResult<QueryResultRow>) => void)
@@ -60,10 +65,10 @@ function patchClientQuery() {
         })
         maybeCallback(err, result)
       })
-      return (originalQuery as any).apply(this, wrappedArgs)
+      return originalQuery(...wrappedArgs)
     }
 
-    const result = (originalQuery as any).apply(this, args)
+    const result = originalQuery(...args)
     if (result && typeof result.then === 'function') {
       return Promise.resolve(result).then(
         (value) => {
@@ -95,16 +100,8 @@ function patchClientQuery() {
       durationMs: performance.now() - start,
     })
     return result
-  } as typeof proto.query
+  }
 
-  proto[PG_INSPECTED] = true
-}
-
-/**
- * Wrap a node-postgres Pool or Client so queries appear in the inspector.
- */
-export function inspectSql<T>(client: T): T {
-  if (!isSqlInspectorEnabled()) return client
-  patchClientQuery()
+  c[PG_INSPECTED] = true
   return client
 }

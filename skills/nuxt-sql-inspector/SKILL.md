@@ -26,10 +26,10 @@ export default defineNuxtConfig({
 Import `inspectSql` from the subpath that matches the driver. Do not auto-import it.
 
 ```ts
-import { inspectSql } from '#nuxt-sql-inspector/node-postgres'
+import { inspectSql } from 'nuxt-sql-inspector/node-postgres'
 const pool = inspectSql(new Pool({ connectionString }))
 
-import { inspectSql } from '#nuxt-sql-inspector/postgres-js'
+import { inspectSql } from 'nuxt-sql-inspector/postgres-js'
 const sql = inspectSql(postgres(url))
 
 // after drizzle(url):

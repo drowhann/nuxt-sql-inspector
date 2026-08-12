@@ -56,11 +56,16 @@ function runDbExample(id: string) {
 
 <template>
   <main style="font-family: ui-monospace, monospace; max-width: 820px; margin: 2rem auto; padding: 0 1rem;">
-    <h1>SQL Inspector POC</h1>
+    <h1>Nuxt SQL Inspector Demo</h1>
     <p>
       Demo APIs that hit PostgreSQL via Drizzle.
       Open the inspector at
       <NuxtLink to="/__sql_queries">/__sql_queries</NuxtLink>.
+      SSR test:
+      <NuxtLink to="/ssr-demo">/ssr-demo</NuxtLink>
+      · non-api route:
+      <a href="/server-demo">/server-demo</a>
+      (inspector lists routes only once they run SQL).
     </p>
 
     <h2>Users (useDb / pg Pool)</h2>

@@ -14,4 +14,12 @@ describe('module', async () => {
       backgroundQueries: [],
     })
   })
+
+  it('does not record page document requests', async () => {
+    await $fetch('/')
+    const data = await $fetch<{
+      requests: { path: string }[]
+    }>('/api/__sql_queries')
+    expect(data.requests.some((r) => r.path === '/')).toBe(false)
+  })
 })

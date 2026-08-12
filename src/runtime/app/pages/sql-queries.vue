@@ -78,6 +78,19 @@ function applyBusEvent(event: InspectorBusEvent | { type: 'ping' }) {
   }
   if (event.type === 'request:start' || event.type === 'request:finish') {
     upsertRequest(event.request)
+    const id = event.request.id
+    const orphans = backgroundQueries.value.filter((q) => q.requestId === id)
+    if (orphans.length) {
+      backgroundQueries.value = backgroundQueries.value.filter((q) => q.requestId !== id)
+      const req = requests.value.find((r) => r.id === id)
+      if (req) {
+        for (const q of orphans) {
+          if (!req.queries.some((x) => x.id === q.id)) {
+            req.queries = [...req.queries, q]
+          }
+        }
+      }
+    }
     return
   }
   if (event.type === 'sql') {
@@ -87,7 +100,11 @@ function applyBusEvent(event: InspectorBusEvent | { type: 'ping' }) {
       return
     }
     const req = requests.value.find((r) => r.id === q.requestId)
-    if (!req) return
+    if (!req) {
+      // request:start may arrive later — keep as background until then
+      backgroundQueries.value = [q, ...backgroundQueries.value].slice(0, 100)
+      return
+    }
     if (!req.queries.some((x) => x.id === q.id)) {
       req.queries = [...req.queries, q]
     }
