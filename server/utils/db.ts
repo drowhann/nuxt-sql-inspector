@@ -1,26 +1,128 @@
-import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
+import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres'
+import { drizzle as drizzlePostgresJs } from 'drizzle-orm/postgres-js'
+import { Client, Pool } from 'pg'
+import postgres from 'postgres'
 import { instrumentSqlInspector } from '#sql-inspector'
 import * as schema from './schema'
 
-let pool: Pool | null = null
-let db: ReturnType<typeof drizzle<typeof schema>> | null = null
+function databaseUrl() {
+  return useRuntimeConfig().databaseUrl as string
+}
 
-export function getPool() {
-  if (!pool) {
-    const config = useRuntimeConfig()
-    pool = instrumentSqlInspector(
-      new Pool({
-        connectionString: config.databaseUrl,
-      }),
+// --- node-postgres ----------------------------------------------------------
+
+let pgPool: Pool | null = null
+let dbPgPool: ReturnType<typeof drizzlePg<typeof schema>> | null = null
+
+/** `new Pool` → instrument → `drizzle({ client })` */
+export function useDbPgPool() {
+  if (!dbPgPool) {
+    pgPool = instrumentSqlInspector(
+      new Pool({ connectionString: databaseUrl() }),
     )
+    dbPgPool = drizzlePg({ client: pgPool, schema })
   }
-  return pool
+  return dbPgPool
 }
 
-export function useDb() {
-  if (!db) {
-    db = drizzle(getPool(), { schema })
+let pgClient: Client | null = null
+let pgClientReady: Promise<Client> | null = null
+let dbPgClient: ReturnType<typeof drizzlePg<typeof schema>> | null = null
+
+/** `new Client` → connect → instrument → `drizzle({ client })` */
+export async function useDbPgClient() {
+  if (!dbPgClient) {
+    if (!pgClientReady) {
+      pgClientReady = (async () => {
+        const client = new Client({ connectionString: databaseUrl() })
+        await client.connect()
+        pgClient = instrumentSqlInspector(client)
+        return pgClient
+      })()
+    }
+    const client = await pgClientReady
+    dbPgClient = drizzlePg({ client, schema })
   }
-  return db
+  return dbPgClient
 }
+
+let dbPgUrl: ReturnType<typeof drizzlePg<typeof schema>> | null = null
+
+/** `drizzle(url)` then `instrumentSqlInspector(db.$client)` */
+export function useDbPgUrl() {
+  if (!dbPgUrl) {
+    dbPgUrl = drizzlePg(databaseUrl(), { schema })
+    instrumentSqlInspector(dbPgUrl.$client)
+  }
+  return dbPgUrl
+}
+
+let dbPgConnection: ReturnType<typeof drizzlePg<typeof schema>> | null = null
+
+/** `drizzle({ connection })` then `instrumentSqlInspector(db.$client)` */
+export function useDbPgConnection() {
+  if (!dbPgConnection) {
+    dbPgConnection = drizzlePg({
+      connection: { connectionString: databaseUrl() },
+      schema,
+    })
+    instrumentSqlInspector(dbPgConnection.$client)
+  }
+  return dbPgConnection
+}
+
+// --- postgres.js ------------------------------------------------------------
+
+let postgresJsSql: ReturnType<typeof postgres> | null = null
+let dbPostgresJs: ReturnType<typeof drizzlePostgresJs<typeof schema>> | null = null
+
+/** `postgres(url)` → instrument → `drizzle({ client })` */
+export function useDbPostgresJs() {
+  if (!dbPostgresJs) {
+    postgresJsSql = instrumentSqlInspector(
+      postgres(databaseUrl(), { max: 1 }),
+    )
+    dbPostgresJs = drizzlePostgresJs({ client: postgresJsSql, schema })
+  }
+  return dbPostgresJs
+}
+
+let dbPostgresJsUrl: ReturnType<typeof drizzlePostgresJs<typeof schema>> | null = null
+
+/** `drizzle(url)` (postgres-js) then `instrumentSqlInspector(db.$client)` */
+export function useDbPostgresJsUrl() {
+  if (!dbPostgresJsUrl) {
+    dbPostgresJsUrl = drizzlePostgresJs(databaseUrl(), { schema })
+    instrumentSqlInspector(dbPostgresJsUrl.$client)
+  }
+  return dbPostgresJsUrl
+}
+
+let dbPostgresJsConnection: ReturnType<typeof drizzlePostgresJs<typeof schema>> | null = null
+
+/** `drizzle({ connection })` (postgres-js) then `instrumentSqlInspector(db.$client)` */
+export function useDbPostgresJsConnection() {
+  if (!dbPostgresJsConnection) {
+    dbPostgresJsConnection = drizzlePostgresJs({
+      connection: { url: databaseUrl() },
+      schema,
+    })
+    instrumentSqlInspector(dbPostgresJsConnection.$client)
+  }
+  return dbPostgresJsConnection
+}
+
+/** Default demo DB (node-postgres Pool). Used by /api/users. */
+export function useDb() {
+  return useDbPgPool()
+}
+
+export const dbExamples = [
+  { id: 'pg-pool', label: 'node-postgres Pool + drizzle({ client })', use: async () => useDbPgPool() },
+  { id: 'pg-client', label: 'node-postgres Client + drizzle({ client })', use: () => useDbPgClient() },
+  { id: 'pg-url', label: 'node-postgres drizzle(url) + db.$client', use: async () => useDbPgUrl() },
+  { id: 'pg-connection', label: 'node-postgres drizzle({ connection }) + db.$client', use: async () => useDbPgConnection() },
+  { id: 'postgresjs-client', label: 'postgres.js client + drizzle({ client })', use: async () => useDbPostgresJs() },
+  { id: 'postgresjs-url', label: 'postgres.js drizzle(url) + db.$client', use: async () => useDbPostgresJsUrl() },
+  { id: 'postgresjs-connection', label: 'postgres.js drizzle({ connection }) + db.$client', use: async () => useDbPostgresJsConnection() },
+] as const

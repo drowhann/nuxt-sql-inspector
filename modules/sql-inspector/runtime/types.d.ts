@@ -1,9 +1,7 @@
 declare module '#sql-inspector' {
-  import type { Pool } from 'pg'
-  export function instrumentSqlInspector<T extends Pool | void = void>(
-    pool?: T,
-  ): T extends Pool ? Pool : void
+  export function instrumentSqlInspector<T = void>(client?: T): T
   export function instrumentPg(): void
+  export function instrumentPostgresJs<T>(sql: T): T
 }
 
 declare module '@nuxt/schema' {

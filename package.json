@@ -7,14 +7,13 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "db:push": "drizzle-kit push",
-    "self-check": "node scripts/self-check.mjs"
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "nuxt": "^3.21.11",
     "pg": "^8.23.0",
+    "postgres": "^3.4.9",
     "vue": "^3.5.41",
     "vue-router": "^4.6.4"
   },
