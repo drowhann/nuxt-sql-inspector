@@ -59,6 +59,10 @@ function formatMs(ms: number | null) {
   return `${ms.toFixed(1)}ms`
 }
 
+function sqlTotalMs(req: RequestEvent) {
+  return req.queries.reduce((sum, q) => sum + q.durationMs, 0)
+}
+
 function upsertRequest(req: RequestEvent) {
   const idx = requests.value.findIndex((r) => r.id === req.id)
   if (idx === -1) {
@@ -180,7 +184,7 @@ onBeforeUnmount(() => {
               <th>Method</th>
               <th>Path</th>
               <th>Status</th>
-              <th>Duration</th>
+              <th>Request</th>
               <th>SQL</th>
               <th>Time</th>
             </tr>
@@ -196,7 +200,10 @@ onBeforeUnmount(() => {
               <td class="path">{{ req.path }}</td>
               <td>{{ req.statusCode ?? '…' }}</td>
               <td>{{ formatMs(req.durationMs) }}</td>
-              <td>{{ req.queries.length }}</td>
+              <td>
+                {{ formatMs(sqlTotalMs(req)) }}
+                <span class="sub">({{ req.queries.length }})</span>
+              </td>
               <td>{{ formatTime(req.startedAt) }}</td>
             </tr>
             <tr v-if="!requests.length">
@@ -210,7 +217,8 @@ onBeforeUnmount(() => {
         <h2>{{ selected.method }} {{ selected.path }}</h2>
         <dl>
           <dt>Status</dt><dd>{{ selected.statusCode ?? 'pending' }}</dd>
-          <dt>Duration</dt><dd>{{ formatMs(selected.durationMs) }}</dd>
+          <dt>Request</dt><dd>{{ formatMs(selected.durationMs) }}</dd>
+          <dt>SQL</dt><dd>{{ formatMs(sqlTotalMs(selected)) }}</dd>
           <dt>Request ID</dt><dd class="mono">{{ selected.id }}</dd>
           <dt>Time</dt><dd>{{ formatTime(selected.startedAt) }}</dd>
           <dt>SQL count</dt><dd>{{ selected.queries.length }}</dd>
@@ -297,6 +305,7 @@ tbody tr { cursor: pointer; }
 tbody tr:hover { background: #f3f7ff; }
 tbody tr.active { background: #e6eefc; }
 .path { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.sub { font-size: 0.85em; color: #777; line-height: 1.2; }
 .empty { color: #777; white-space: normal; }
 .detail {
   border: 1px solid #ccc;
