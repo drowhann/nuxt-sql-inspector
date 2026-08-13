@@ -2,13 +2,13 @@
 name: nuxt-sql-inspector
 description: >-
   Add the nuxt-sql-inspector module to a Nuxt app. Use when installing SQL query
-  inspection for pg or postgres.js (raw, Neon Pool, Vercel/Netlify/PGlite,
-  Drizzle, Prisma adapter), or wiring /__sql_queries.
+  inspection for pg, postgres.js, mysql2, or @libsql/client (Neon Pool,
+  Vercel/Netlify/PGlite, Drizzle, Prisma adapter), or wiring /__sql_queries.
 ---
 
 # nuxt-sql-inspector
 
-Dev-only Nuxt module: API requests + PostgreSQL queries at `/__sql_queries`. Wraps the **drivers** (`pg` / `postgres.js`) and pg-compatible `.query` clients, not a specific ORM.
+Dev-only Nuxt module: API requests + SQL queries at `/__sql_queries`. Wraps drivers (`pg` / `postgres.js` / `mysql2` / `@libsql/client`), not a specific ORM.
 
 ## Install
 
@@ -33,6 +33,12 @@ const pool = inspectSql(new Pool({ connectionString }))
 import { inspectSql } from 'nuxt-sql-inspector/postgres-js'
 const sql = inspectSql(postgres(url))
 
+import { inspectSql } from 'nuxt-sql-inspector/mysql2'
+const mysqlPool = inspectSql(mysql.createPool({ uri }))
+
+import { inspectSql } from 'nuxt-sql-inspector/libsql'
+const db = inspectSql(createClient({ url }))
+
 // Drizzle after drizzle(url):
 inspectSql(db.$client)
 
@@ -43,7 +49,7 @@ const prisma = new PrismaClient({ adapter: new PrismaPg(pool) })
 
 Default Prisma Client (no driver adapter) does not go through `pg` and will not be captured.
 
-Postgres-compatible clients that expose `.query` use `/node-postgres`: Neon **Pool/Client**, `@vercel/postgres` `createPool`, `@netlify/database` `db.pool`, `@electric-sql/pglite`. Neon HTTP `neon()`, Bun `SQL`, `mysql2`, libSQL/Turso, and sync SQLite are **not** supported. Full list: project `docs/usage.md` Compatibility section.
+Postgres-compatible `.query` clients use `/node-postgres` (Neon Pool, Vercel createPool, Netlify `db.pool`, PGlite). Neon HTTP `neon()`, Bun `SQL`, TiDB serverless, sync SQLite (`better-sqlite3`) are **not** supported. Full list: project `docs/usage.md` Compatibility section.
 
 Do not auto-patch. Call once at pool/client creation. When the module is disabled (production), the same imports resolve to a no-op `inspectSql`.
 

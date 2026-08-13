@@ -1,6 +1,6 @@
 # nuxt-sql-inspector
 
-Dev-only Nuxt module that shows each API request and the PostgreSQL queries it triggered. Works with **`pg`** / **`postgres.js`** and pg-compatible clients (Neon Pool, `@vercel/postgres` createPool, Netlify `db.pool`, PGlite, Drizzle, Prisma `@prisma/adapter-pg`, etc.). MySQL / SQLite drivers are not wrapped yet — see [compatibility](docs/usage.md#compatibility).
+Dev-only Nuxt module that shows each API request and the SQL queries it triggered. Works with **`pg`** / **`postgres.js`** (and pg-compatible clients), **`mysql2`**, and **`@libsql/client`** (SQLite / Turso). See [compatibility](docs/usage.md#compatibility).
 
 ```bash
 pnpm add -D nuxt-sql-inspector
@@ -20,12 +20,18 @@ const pool = inspectSql(new Pool({ connectionString }))
 
 import { inspectSql } from 'nuxt-sql-inspector/postgres-js'
 const sql = inspectSql(postgres(process.env.DATABASE_URL!))
+
+import { inspectSql } from 'nuxt-sql-inspector/mysql2'
+const mysqlPool = inspectSql(mysql.createPool({ uri }))
+
+import { inspectSql } from 'nuxt-sql-inspector/libsql'
+const db = inspectSql(createClient({ url }))
 ```
 
 Open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Production requires both `enabled: true` and `forceEnableInProduction: true` (not recommended). Bind params are redacted by default (`redactParams: false` to show raw values).
 
 - [Installation](docs/installation.md)
-- [Usage](docs/usage.md) (drivers, Drizzle, Prisma, [compatibility](docs/usage.md#compatibility) — Neon / Vercel / Netlify / PGlite and unsupported MySQL·SQLite)
+- [Usage](docs/usage.md) (drivers, ORMs, [compatibility](docs/usage.md#compatibility))
 
 ## Local development
 

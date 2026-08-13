@@ -1,7 +1,7 @@
 {
   "name": "nuxt-sql-inspector",
   "version": "0.1.0",
-  "description": "Dev-only Nuxt module that shows API requests and their PostgreSQL queries.",
+  "description": "Dev-only Nuxt module that shows API requests and their SQL queries (Postgres, MySQL, SQLite/libSQL).",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rohan/nuxt-sql-inspector.git"
@@ -11,6 +11,9 @@
     "nuxt-module",
     "drizzle",
     "postgres",
+    "mysql",
+    "sqlite",
+    "libsql",
     "sql",
     "inspector"
   ],
@@ -27,6 +30,14 @@
     "./postgres-js": {
       "types": "./dist/runtime/server/utils/inspect-postgresjs.d.ts",
       "import": "./dist/runtime/server/utils/inspect-postgresjs.js"
+    },
+    "./mysql2": {
+      "types": "./dist/runtime/server/utils/inspect-mysql2.d.ts",
+      "import": "./dist/runtime/server/utils/inspect-mysql2.js"
+    },
+    "./libsql": {
+      "types": "./dist/runtime/server/utils/inspect-libsql.d.ts",
+      "import": "./dist/runtime/server/utils/inspect-libsql.js"
     }
   },
   "main": "./dist/module.mjs",
@@ -40,6 +51,12 @@
       ],
       "postgres-js": [
         "./dist/runtime/server/utils/inspect-postgresjs.d.ts"
+      ],
+      "mysql2": [
+        "./dist/runtime/server/utils/inspect-mysql2.d.ts"
+      ],
+      "libsql": [
+        "./dist/runtime/server/utils/inspect-libsql.d.ts"
       ]
     }
   },
@@ -63,13 +80,21 @@
   "peerDependencies": {
     "nuxt": ">=3.16.0",
     "pg": ">=8",
-    "postgres": ">=3"
+    "postgres": ">=3",
+    "mysql2": ">=3",
+    "@libsql/client": ">=0.14"
   },
   "peerDependenciesMeta": {
     "pg": {
       "optional": true
     },
     "postgres": {
+      "optional": true
+    },
+    "mysql2": {
+      "optional": true
+    },
+    "@libsql/client": {
       "optional": true
     }
   },

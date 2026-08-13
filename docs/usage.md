@@ -1,14 +1,14 @@
 # Usage
 
-The inspector wraps the **PostgreSQL drivers** (`pg` / node-postgres and `postgres.js`), not a specific ORM. Call `inspectSql` **once** when you create the pool or client. Import it from the subpath that matches the driver. The module does not auto-patch.
+The inspector wraps **SQL drivers** (`pg`, `postgres.js`, `mysql2`, `@libsql/client`), not a specific ORM. Call `inspectSql` **once** when you create the pool or client. Import it from the subpath that matches the driver. The module does not auto-patch.
 
 Then open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Any server request can be tracked (`/api/**`, `server/routes/*`, etc.); it only appears in the list after at least one SQL query (so empty page renders stay hidden). Limit paths with `sqlInspector.include` / `exclude` (see [installation](./installation.md)). Params are redacted by default. In the playground, try `/ssr-demo` (SSR → `/api/users`) or `GET /server-demo`.
 
-`nuxt-sql-inspector/node-postgres` and `nuxt-sql-inspector/postgres-js` are aliased by the module (and match the package exports). Server-only. When the inspector is disabled, those aliases resolve to a no-op `inspectSql`.
+Driver subpaths (`node-postgres`, `postgres-js`, `mysql2`, `libsql`) are aliased by the module (and match the package exports). Server-only. When the inspector is disabled, those aliases resolve to a no-op `inspectSql`.
 
 ## Compatibility
 
-If SQL goes through a wrapped `pg` `.query` or a wrapped postgres.js client, it shows up; otherwise it does not.
+If SQL goes through a wrapped driver method below, it shows up; otherwise it does not.
 
 ### Supported
 
@@ -16,14 +16,18 @@ If SQL goes through a wrapped `pg` `.query` or a wrapped postgres.js client, it 
 | --- | --- |
 | `pg` Pool / Client | `inspectSql` from `nuxt-sql-inspector/node-postgres` |
 | `postgres` (postgres.js) | `inspectSql` from `nuxt-sql-inspector/postgres-js` |
+| `mysql2` pool / connection | `inspectSql` from `nuxt-sql-inspector/mysql2` (`.query` + `.execute`) |
+| `@libsql/client` (local SQLite + Turso) | `inspectSql` from `nuxt-sql-inspector/libsql` (`.execute` + `.batch`) |
 | Neon `@neondatabase/serverless` **Pool / Client** (WebSocket) | same as `pg` → `/node-postgres` |
 | `@vercel/postgres` **`createPool` / `createClient`** | wrap the pool/client → `/node-postgres` |
 | `@netlify/database` **`db.pool`** (or `pg.Pool` from `getConnectionString()`) | wrap that pool → `/node-postgres` |
 | `@electric-sql/pglite` | wrap the `PGlite` instance → `/node-postgres` (has `.query`) |
 | `@effect/sql-pg` | only if you inject a wrapped `pg` Pool/client into Effect |
-| Drizzle on `pg` or `postgres.js` | wrap the client, or `inspectSql(db.$client)` |
+| Drizzle on `pg`, `postgres.js`, `mysql2`, or libsql | wrap the underlying client / `$client` |
 | Prisma with `@prisma/adapter-pg` | wrap the `Pool`, then pass it to `PrismaPg` |
-| Other ORMs / query builders with an injectable `pg` or `postgres` client (e.g. Kysely + pg) | wrap that underlying client |
+| Other ORMs with an injectable supported driver client | wrap that underlying client |
+
+Turso-branded packages that re-export / use `@libsql/client` the same way: wrap that client with `/libsql`.
 
 ### Not supported
 
@@ -34,14 +38,11 @@ If SQL goes through a wrapped `pg` `.query` or a wrapped postgres.js client, it 
 | Default Prisma Client (no driver adapter) | own engine; does not use `pg` |
 | `@effect/sql-pg` with connection string only (Effect owns the pool) | no injectable client to wrap |
 | Supabase JS client | PostgREST / HTTP, not a SQL driver |
-| `mysql2` | MySQL driver — not wrapped yet |
-| `@tidbcloud/serverless` | MySQL-over-HTTP `.execute` — not wrapped yet |
+| `@tidbcloud/serverless` | MySQL-over-HTTP `.execute` — not the mysql2 socket API |
 | Bun `SQL` (Postgres / MySQL / SQLite) | native tagged API — not wrapped yet |
 | `@aws-sdk/client-rds-data` | Data API HTTP, not a SQL socket driver |
-| `@libsql/client`, `@tursodatabase/*`, `@sqlitecloud/drivers` | SQLite / libSQL APIs — not wrapped yet |
+| `@sqlitecloud/drivers` | different driver API — not wrapped yet |
 | `better-sqlite3` / `bun:sqlite` / other sync SQLite | sync `prepare` / `run` / `get` — not wrapped yet |
-
-MySQL / SQLite support would need separate thin wrappers later (e.g. `mysql2`, `@libsql/client`); this module does not instrument them today.
 
 ## node-postgres (raw)
 
@@ -142,4 +143,24 @@ import { inspectSql } from 'nuxt-sql-inspector/node-postgres'
 
 const pool = inspectSql(new Pool({ connectionString: process.env.DATABASE_URL }))
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) })
+```
+
+## mysql2
+
+```ts
+import mysql from 'mysql2/promise'
+import { inspectSql } from 'nuxt-sql-inspector/mysql2'
+
+const pool = inspectSql(mysql.createPool({ uri: process.env.DATABASE_URL }))
+const [rows] = await pool.execute('SELECT * FROM users WHERE id = ?', [1])
+```
+
+## libSQL / Turso
+
+```ts
+import { createClient } from '@libsql/client'
+import { inspectSql } from 'nuxt-sql-inspector/libsql'
+
+const db = inspectSql(createClient({ url: process.env.LIBSQL_URL! }))
+await db.execute('SELECT * FROM users WHERE id = ?', [1])
 ```

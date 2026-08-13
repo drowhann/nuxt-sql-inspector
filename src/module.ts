@@ -87,15 +87,25 @@ export default defineNuxtModule<ModuleOptions>({
     const inspectPostgresJs = enabled
       ? resolver.resolve('./runtime/server/utils/inspect-postgresjs')
       : inspectNoop
+    const inspectMysql2 = enabled
+      ? resolver.resolve('./runtime/server/utils/inspect-mysql2')
+      : inspectNoop
+    const inspectLibsql = enabled
+      ? resolver.resolve('./runtime/server/utils/inspect-libsql')
+      : inspectNoop
 
     nuxt.options.alias ||= {}
     nuxt.options.alias['nuxt-sql-inspector/node-postgres'] = inspectPg
     nuxt.options.alias['nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
+    nuxt.options.alias['nuxt-sql-inspector/mysql2'] = inspectMysql2
+    nuxt.options.alias['nuxt-sql-inspector/libsql'] = inspectLibsql
 
     nuxt.options.nitro ||= {}
     nuxt.options.nitro.alias ||= {}
     nuxt.options.nitro.alias['nuxt-sql-inspector/node-postgres'] = inspectPg
     nuxt.options.nitro.alias['nuxt-sql-inspector/postgres-js'] = inspectPostgresJs
+    nuxt.options.nitro.alias['nuxt-sql-inspector/mysql2'] = inspectMysql2
+    nuxt.options.nitro.alias['nuxt-sql-inspector/libsql'] = inspectLibsql
 
     nuxt.options.runtimeConfig.sqlInspector = {
       ...(nuxt.options.runtimeConfig.sqlInspector as object | undefined),
