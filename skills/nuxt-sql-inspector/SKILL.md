@@ -2,12 +2,13 @@
 name: nuxt-sql-inspector
 description: >-
   Add the nuxt-sql-inspector module to a Nuxt app. Use when installing SQL query
-  inspection, wrapping pg or postgres.js for Drizzle, or wiring /__sql_queries.
+  inspection for pg or postgres.js (raw, Drizzle, Prisma adapter), or wiring
+  /__sql_queries.
 ---
 
 # nuxt-sql-inspector
 
-Dev-only Nuxt module: API requests + PostgreSQL queries at `/__sql_queries`.
+Dev-only Nuxt module: API requests + PostgreSQL queries at `/__sql_queries`. Wraps the **drivers** (`pg` / `postgres.js`), not a specific ORM.
 
 ## Install
 
@@ -32,9 +33,15 @@ const pool = inspectSql(new Pool({ connectionString }))
 import { inspectSql } from 'nuxt-sql-inspector/postgres-js'
 const sql = inspectSql(postgres(url))
 
-// after drizzle(url):
+// Drizzle after drizzle(url):
 inspectSql(db.$client)
+
+// Prisma: only with @prisma/adapter-pg — wrap the Pool, then pass it to PrismaPg
+const pool = inspectSql(new Pool({ connectionString }))
+const prisma = new PrismaClient({ adapter: new PrismaPg(pool) })
 ```
+
+Default Prisma Client (no driver adapter) does not go through `pg` and will not be captured.
 
 Do not auto-patch. Call once at pool/client creation. When the module is disabled (production), the same imports resolve to a no-op `inspectSql`.
 

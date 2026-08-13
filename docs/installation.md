@@ -28,4 +28,4 @@ The module is a no-op in production unless you set **both** `sqlInspector.enable
 
 ## Next
 
-See [usage](./usage.md) to wrap your Drizzle / PostgreSQL client.
+See [usage](./usage.md) to wrap `pg` or `postgres.js` (raw, Drizzle, Prisma adapter, etc.).

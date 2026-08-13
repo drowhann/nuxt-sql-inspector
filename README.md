@@ -1,6 +1,6 @@
 # nuxt-sql-inspector
 
-Dev-only Nuxt module that shows each API request and the PostgreSQL queries it triggered.
+Dev-only Nuxt module that shows each API request and the PostgreSQL queries it triggered. Works with any code that uses **`pg`** (node-postgres) or **`postgres.js`** — raw SQL, Drizzle, Prisma with `@prisma/adapter-pg`, and similar.
 
 ```bash
 pnpm add -D nuxt-sql-inspector
@@ -25,7 +25,7 @@ const sql = inspectSql(postgres(process.env.DATABASE_URL!))
 Open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Production requires both `enabled: true` and `forceEnableInProduction: true` (not recommended). Bind params are redacted by default (`redactParams: false` to show raw values).
 
 - [Installation](docs/installation.md)
-- [Usage](docs/usage.md) (node-postgres and postgres.js)
+- [Usage](docs/usage.md) (drivers, Drizzle, Prisma)
 
 ## Local development
 
