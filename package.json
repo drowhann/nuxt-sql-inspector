@@ -89,7 +89,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
+    "test:types": "vue-tsc --noEmit -p playground"
   },
   "dependencies": {
     "@nuxt/devtools-kit": "^3.4.1",

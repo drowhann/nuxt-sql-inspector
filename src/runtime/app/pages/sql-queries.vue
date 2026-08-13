@@ -44,11 +44,11 @@ const sortKey = ref<SortKey>('time')
 const sortDir = ref<'asc' | 'desc'>('desc')
 
 const selected = computed(() =>
-  requests.value.find((r) => r.id === selectedId.value) || null,
+  requests.value.find((r: RequestEvent) => r.id === selectedId.value) || null,
 )
 
 const methodOptions = computed(() =>
-  [...new Set(requests.value.map((r) => r.method))].sort(),
+  [...new Set(requests.value.map((r: RequestEvent) => r.method))].sort(),
 )
 
 const filteredRequests = computed(() => {
@@ -56,7 +56,7 @@ const filteredRequests = computed(() => {
   const method = methodFilter.value
   const status = statusFilter.value.trim()
 
-  const list = requests.value.filter((r) => {
+  const list = requests.value.filter((r: RequestEvent) => {
     if (pathQ && !r.path.toLowerCase().includes(pathQ)) return false
     if (method && r.method !== method) return false
     if (status) {
@@ -125,7 +125,7 @@ function sortMark(key: SortKey) {
 }
 
 function upsertRequest(req: RequestEvent) {
-  const idx = requests.value.findIndex((r) => r.id === req.id)
+  const idx = requests.value.findIndex((r: RequestEvent) => r.id === req.id)
   if (idx === -1) {
     requests.value.unshift(req)
   } else {
@@ -144,13 +144,13 @@ function applyBusEvent(event: InspectorBusEvent | { type: 'ping' }) {
   if (event.type === 'request:start' || event.type === 'request:finish') {
     upsertRequest(event.request)
     const id = event.request.id
-    const orphans = backgroundQueries.value.filter((q) => q.requestId === id)
+    const orphans = backgroundQueries.value.filter((q: SqlQueryEvent) => q.requestId === id)
     if (orphans.length) {
-      backgroundQueries.value = backgroundQueries.value.filter((q) => q.requestId !== id)
-      const req = requests.value.find((r) => r.id === id)
+      backgroundQueries.value = backgroundQueries.value.filter((q: SqlQueryEvent) => q.requestId !== id)
+      const req = requests.value.find((r: RequestEvent) => r.id === id)
       if (req) {
         for (const q of orphans) {
-          if (!req.queries.some((x) => x.id === q.id)) {
+          if (!req.queries.some((x: SqlQueryEvent) => x.id === q.id)) {
             req.queries = [...req.queries, q]
           }
         }
@@ -164,13 +164,13 @@ function applyBusEvent(event: InspectorBusEvent | { type: 'ping' }) {
       backgroundQueries.value = [q, ...backgroundQueries.value].slice(0, 100)
       return
     }
-    const req = requests.value.find((r) => r.id === q.requestId)
+    const req = requests.value.find((r: RequestEvent) => r.id === q.requestId)
     if (!req) {
       // request:start may arrive later — keep as background until then
       backgroundQueries.value = [q, ...backgroundQueries.value].slice(0, 100)
       return
     }
-    if (!req.queries.some((x) => x.id === q.id)) {
+    if (!req.queries.some((x: SqlQueryEvent) => x.id === q.id)) {
       req.queries = [...req.queries, q]
     }
   }

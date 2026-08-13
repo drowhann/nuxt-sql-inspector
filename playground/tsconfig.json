@@ -1,3 +1,14 @@
 {
-  "extends": "./.nuxt/tsconfig.json"
+  "extends": "./.nuxt/tsconfig.json",
+  "exclude": [
+    "dist",
+    ".output",
+    "../node_modules",
+    "../test",
+    "../dist",
+    "../docs",
+    "../skills",
+    "../.nuxt",
+    "../.github"
+  ]
 }

@@ -119,9 +119,9 @@ export default defineNuxtModule<ModuleOptions>({
       redactParams,
     }
 
-    nuxt.options.runtimeConfig.public ||= {}
-    ;(nuxt.options.runtimeConfig.public as any).sqlInspector = {
-      ...((nuxt.options.runtimeConfig.public as any).sqlInspector || {}),
+    const pub = (nuxt.options.runtimeConfig.public ||= {} as typeof nuxt.options.runtimeConfig.public)
+    ;(pub as Record<string, unknown>).sqlInspector = {
+      ...(((pub as Record<string, unknown>).sqlInspector as object | undefined) || {}),
       path,
       apiBase,
       allowAccess: enabled,
@@ -133,8 +133,10 @@ export default defineNuxtModule<ModuleOptions>({
 
     if (!enabled) return
 
-    nuxt.options.experimental ||= {}
-    nuxt.options.experimental.asyncContext = true
+    nuxt.options.experimental = {
+      ...nuxt.options.experimental,
+      asyncContext: true,
+    }
 
     addServerPlugin(resolver.resolve('./runtime/server/plugin'))
 

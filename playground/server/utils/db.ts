@@ -1,3 +1,4 @@
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres'
 import { drizzle as drizzlePostgresJs } from 'drizzle-orm/postgres-js'
 import { Client, Pool } from 'pg'
@@ -10,10 +11,14 @@ function databaseUrl() {
   return useRuntimeConfig().databaseUrl as string
 }
 
+// ponytail: drizzle Pool/Client overloads don't share one ReturnType
+type PgDb = NodePgDatabase<typeof schema> & { $client: Pool | Client }
+type PostgresJsDb = ReturnType<typeof drizzlePostgresJs<typeof schema>>
+
 // --- node-postgres ----------------------------------------------------------
 
 let pgPool: Pool | null = null
-let dbPgPool: ReturnType<typeof drizzlePg<typeof schema>> | null = null
+let dbPgPool: PgDb | null = null
 
 /** `new Pool` → inspectSql → `drizzle({ client })` */
 export function useDbPgPool() {
@@ -23,12 +28,12 @@ export function useDbPgPool() {
     )
     dbPgPool = drizzlePg({ client: pgPool, schema })
   }
-  return dbPgPool
+  return dbPgPool!
 }
 
 let pgClient: Client | null = null
 let pgClientReady: Promise<Client> | null = null
-let dbPgClient: ReturnType<typeof drizzlePg<typeof schema>> | null = null
+let dbPgClient: PgDb | null = null
 
 /** `new Client` → connect → inspectSql → `drizzle({ client })` */
 export async function useDbPgClient() {
@@ -44,10 +49,10 @@ export async function useDbPgClient() {
     const client = await pgClientReady
     dbPgClient = drizzlePg({ client, schema })
   }
-  return dbPgClient
+  return dbPgClient!
 }
 
-let dbPgUrl: ReturnType<typeof drizzlePg<typeof schema>> | null = null
+let dbPgUrl: PgDb | null = null
 
 /** `drizzle(url)` then `inspectSql(db.$client)` */
 export function useDbPgUrl() {
@@ -55,10 +60,10 @@ export function useDbPgUrl() {
     dbPgUrl = drizzlePg(databaseUrl(), { schema })
     inspectPg(dbPgUrl.$client)
   }
-  return dbPgUrl
+  return dbPgUrl!
 }
 
-let dbPgConnection: ReturnType<typeof drizzlePg<typeof schema>> | null = null
+let dbPgConnection: PgDb | null = null
 
 /** `drizzle({ connection })` then `inspectSql(db.$client)` */
 export function useDbPgConnection() {
@@ -69,13 +74,13 @@ export function useDbPgConnection() {
     })
     inspectPg(dbPgConnection.$client)
   }
-  return dbPgConnection
+  return dbPgConnection!
 }
 
 // --- postgres.js ------------------------------------------------------------
 
 let postgresJsSql: ReturnType<typeof postgres> | null = null
-let dbPostgresJs: ReturnType<typeof drizzlePostgresJs<typeof schema>> | null = null
+let dbPostgresJs: PostgresJsDb | null = null
 
 /** `postgres(url)` → inspectSql → `drizzle({ client })` */
 export function useDbPostgresJs() {
@@ -85,10 +90,10 @@ export function useDbPostgresJs() {
     )
     dbPostgresJs = drizzlePostgresJs({ client: postgresJsSql, schema })
   }
-  return dbPostgresJs
+  return dbPostgresJs!
 }
 
-let dbPostgresJsUrl: ReturnType<typeof drizzlePostgresJs<typeof schema>> | null = null
+let dbPostgresJsUrl: PostgresJsDb | null = null
 
 /** `drizzle(url)` (postgres-js) then `inspectSql(db.$client)` */
 export function useDbPostgresJsUrl() {
@@ -96,10 +101,10 @@ export function useDbPostgresJsUrl() {
     dbPostgresJsUrl = drizzlePostgresJs(databaseUrl(), { schema })
     inspectPostgresJs(dbPostgresJsUrl.$client)
   }
-  return dbPostgresJsUrl
+  return dbPostgresJsUrl!
 }
 
-let dbPostgresJsConnection: ReturnType<typeof drizzlePostgresJs<typeof schema>> | null = null
+let dbPostgresJsConnection: PostgresJsDb | null = null
 
 /** `drizzle({ connection })` (postgres-js) then `inspectSql(db.$client)` */
 export function useDbPostgresJsConnection() {
@@ -110,7 +115,7 @@ export function useDbPostgresJsConnection() {
     })
     inspectPostgresJs(dbPostgresJsConnection.$client)
   }
-  return dbPostgresJsConnection
+  return dbPostgresJsConnection!
 }
 
 /** Default demo DB (node-postgres Pool). Used by /api/users. */
