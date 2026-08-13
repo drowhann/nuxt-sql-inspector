@@ -35,7 +35,7 @@ describe('inspectSql (libsql)', () => {
     })
 
     const client = {
-      async execute(stmt: unknown, args?: unknown[]) {
+      async execute(_stmt: unknown, _args?: unknown[]) {
         return { rows: [] }
       },
       async batch(stmts: unknown[]) {

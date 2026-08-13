@@ -65,7 +65,7 @@ describe('inspectSql (node-postgres)', () => {
     })
 
     const client = {
-      async query(q: { text: string; values?: unknown[] }) {
+      async query(_q: { text: string; values?: unknown[] }) {
         return { rows: [] }
       },
     }

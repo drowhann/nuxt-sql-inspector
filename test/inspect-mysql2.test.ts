@@ -35,10 +35,10 @@ describe('inspectSql (mysql2)', () => {
     })
 
     const pool = {
-      async query(sql: string, params?: unknown[]) {
+      async query(_sql: string, _params?: unknown[]) {
         return [[], []]
       },
-      async execute(sql: string, params?: unknown[]) {
+      async execute(_sql: string, _params?: unknown[]) {
         return [[], []]
       },
     }
@@ -67,7 +67,7 @@ describe('inspectSql (mysql2)', () => {
     })
 
     const pool = {
-      async execute(q: { sql: string; values?: unknown[] }) {
+      async execute(_q: { sql: string; values?: unknown[] }) {
         await new Promise((r) => setTimeout(r, 10))
         return [[], []]
       },

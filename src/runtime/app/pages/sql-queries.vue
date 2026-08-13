@@ -56,7 +56,7 @@ const filteredRequests = computed(() => {
   const method = methodFilter.value
   const status = statusFilter.value.trim()
 
-  let list = requests.value.filter((r) => {
+  const list = requests.value.filter((r) => {
     if (pathQ && !r.path.toLowerCase().includes(pathQ)) return false
     if (method && r.method !== method) return false
     if (status) {
@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
     <div class="filters">
       <label>
         Path
-        <input v-model="pathFilter" type="search" placeholder="/api/…" />
+        <input v-model="pathFilter" type="search" placeholder="/api/…" >
       </label>
       <label>
         Method
@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
       </label>
       <label>
         Status
-        <input v-model="statusFilter" type="search" placeholder="200, 4…" />
+        <input v-model="statusFilter" type="search" placeholder="200, 4…" >
       </label>
     </div>
 
