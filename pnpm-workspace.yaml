@@ -3,4 +3,5 @@ packages:
 
 allowBuilds:
   esbuild: true
+  simple-git-hooks: set this to true or false
   unrs-resolver: true

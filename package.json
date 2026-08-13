@@ -89,18 +89,23 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "test:types": "vue-tsc --noEmit -p playground"
+    "test:types": "vue-tsc --noEmit -p playground",
+    "check": "pnpm lint && pnpm dev:prepare && pnpm test && pnpm test:types",
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm check"
   },
   "dependencies": {
     "@nuxt/devtools-kit": "^3.4.1",
     "@nuxt/kit": "^3.16.0"
   },
   "peerDependencies": {
+    "@libsql/client": ">=0.14",
+    "mysql2": ">=3",
     "nuxt": ">=3.16.0",
     "pg": ">=8",
-    "postgres": ">=3",
-    "mysql2": ">=3",
-    "@libsql/client": ">=0.14"
+    "postgres": ">=3"
   },
   "peerDependenciesMeta": {
     "pg": {
@@ -129,6 +134,7 @@
     "nuxt": "^3.21.11",
     "pg": "^8.23.0",
     "postgres": "^3.4.9",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0",
     "vue-tsc": "^2.2.0"
