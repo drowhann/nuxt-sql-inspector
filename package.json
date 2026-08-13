@@ -15,13 +15,25 @@
   "keywords": [
     "nuxt",
     "nuxt-module",
-    "drizzle",
+    "nuxt-devtools",
+    "sql",
+    "inspector",
     "postgres",
+    "postgresql",
+    "pg",
+    "node-postgres",
+    "postgres.js",
     "mysql",
+    "mysql2",
     "sqlite",
     "libsql",
-    "sql",
-    "inspector"
+    "turso",
+    "drizzle",
+    "prisma",
+    "neon",
+    "pglite",
+    "vercel-postgres",
+    "devtools"
   ],
   "type": "module",
   "exports": {
