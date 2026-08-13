@@ -2,13 +2,13 @@
 name: nuxt-sql-inspector
 description: >-
   Add the nuxt-sql-inspector module to a Nuxt app. Use when installing SQL query
-  inspection for pg or postgres.js (raw, Drizzle, Prisma adapter), or wiring
-  /__sql_queries.
+  inspection for pg or postgres.js (raw, Neon Pool, Vercel/Netlify/PGlite,
+  Drizzle, Prisma adapter), or wiring /__sql_queries.
 ---
 
 # nuxt-sql-inspector
 
-Dev-only Nuxt module: API requests + PostgreSQL queries at `/__sql_queries`. Wraps the **drivers** (`pg` / `postgres.js`), not a specific ORM.
+Dev-only Nuxt module: API requests + PostgreSQL queries at `/__sql_queries`. Wraps the **drivers** (`pg` / `postgres.js`) and pg-compatible `.query` clients, not a specific ORM.
 
 ## Install
 
@@ -43,7 +43,7 @@ const prisma = new PrismaClient({ adapter: new PrismaPg(pool) })
 
 Default Prisma Client (no driver adapter) does not go through `pg` and will not be captured.
 
-Neon `@neondatabase/serverless` **Pool/Client** uses `/node-postgres`. Neon HTTP `neon()` is **not** supported. Full supported / unsupported list: project `docs/usage.md` Compatibility section.
+Postgres-compatible clients that expose `.query` use `/node-postgres`: Neon **Pool/Client**, `@vercel/postgres` `createPool`, `@netlify/database` `db.pool`, `@electric-sql/pglite`. Neon HTTP `neon()`, Bun `SQL`, `mysql2`, libSQL/Turso, and sync SQLite are **not** supported. Full list: project `docs/usage.md` Compatibility section.
 
 Do not auto-patch. Call once at pool/client creation. When the module is disabled (production), the same imports resolve to a no-op `inspectSql`.
 
