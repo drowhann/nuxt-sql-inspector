@@ -25,7 +25,7 @@ const sql = inspectSql(postgres(process.env.DATABASE_URL!))
 Open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Production requires both `enabled: true` and `forceEnableInProduction: true` (not recommended). Bind params are redacted by default (`redactParams: false` to show raw values).
 
 - [Installation](docs/installation.md)
-- [Usage](docs/usage.md) (drivers, Drizzle, Prisma)
+- [Usage](docs/usage.md) (drivers, Drizzle, Prisma, [compatibility](docs/usage.md#compatibility))
 
 ## Local development
 

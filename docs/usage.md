@@ -6,6 +6,30 @@ Then open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools w
 
 `nuxt-sql-inspector/node-postgres` and `nuxt-sql-inspector/postgres-js` are aliased by the module (and match the package exports). Server-only. When the inspector is disabled, those aliases resolve to a no-op `inspectSql`.
 
+## Compatibility
+
+If SQL goes through a wrapped `pg` `.query` or a wrapped postgres.js client, it shows up; otherwise it does not.
+
+### Supported
+
+| Stack | How to wrap |
+| --- | --- |
+| `pg` Pool / Client | `inspectSql` from `nuxt-sql-inspector/node-postgres` |
+| `postgres` (postgres.js) | `inspectSql` from `nuxt-sql-inspector/postgres-js` |
+| Neon `@neondatabase/serverless` **Pool / Client** (WebSocket, pg-compatible) | same as `pg` → `/node-postgres` |
+| Drizzle on `pg` or `postgres.js` | wrap the client, or `inspectSql(db.$client)` |
+| Prisma with `@prisma/adapter-pg` | wrap the `Pool`, then pass it to `PrismaPg` |
+| Other ORMs / query builders with an injectable `pg` or `postgres` client (e.g. Kysely + pg) | wrap that underlying client |
+
+### Not supported
+
+| Stack | Why |
+| --- | --- |
+| Neon HTTP `neon()` / tagged `sql` from `@neondatabase/serverless` | not the `pg` `.query` API |
+| Default Prisma Client (no driver adapter) | own engine; does not use `pg` |
+| Supabase JS client | PostgREST / HTTP, not a SQL driver |
+| Other drivers / runtimes (e.g. Bun.sql) | not `pg` or `postgres.js` |
+
 ## node-postgres (raw)
 
 ```ts
@@ -18,6 +42,15 @@ const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [1])
 // or a single Client:
 const client = inspectSql(new Client({ connectionString: process.env.DATABASE_URL }))
 await client.connect()
+```
+
+Neon serverless **Pool** / **Client** (WebSocket) is the same wrap:
+
+```ts
+import { Pool } from '@neondatabase/serverless'
+import { inspectSql } from 'nuxt-sql-inspector/node-postgres'
+
+const pool = inspectSql(new Pool({ connectionString: process.env.DATABASE_URL }))
 ```
 
 ## postgres.js (raw)

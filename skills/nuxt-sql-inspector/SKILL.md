@@ -43,6 +43,8 @@ const prisma = new PrismaClient({ adapter: new PrismaPg(pool) })
 
 Default Prisma Client (no driver adapter) does not go through `pg` and will not be captured.
 
+Neon `@neondatabase/serverless` **Pool/Client** uses `/node-postgres`. Neon HTTP `neon()` is **not** supported. Full supported / unsupported list: project `docs/usage.md` Compatibility section.
+
 Do not auto-patch. Call once at pool/client creation. When the module is disabled (production), the same imports resolve to a no-op `inspectSql`.
 
 ## Open
