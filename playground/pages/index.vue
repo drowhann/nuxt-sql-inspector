@@ -52,6 +52,10 @@ function runAllDbExamples() {
 function runDbExample(id: string) {
   return call(`/api/db-examples/${id}`)
 }
+
+function runInspectorDemo(kind: string) {
+  return call(`/api/demo/${kind}`)
+}
 </script>
 
 <template>
@@ -85,6 +89,30 @@ function runDbExample(id: string) {
       </label>
       <button :disabled="busy" type="submit">POST /api/users</button>
     </form>
+
+    <h2>Inspector checks</h2>
+    <p style="color: #555; font-size: 0.9rem;">
+      Open
+      <NuxtLink to="/__sql_queries">/__sql_queries</NuxtLink>
+      first, then hit these. Use
+      <code>pnpm dev:src</code>
+      so the playground loads this checkout’s inspector UI (not published
+      <code>dist/</code>).
+    </p>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0;">
+      <button :disabled="busy" @click="runInspectorDemo('n-plus-one')">
+        N+1 (×4 same SELECT)
+      </button>
+      <button :disabled="busy" @click="runInspectorDemo('parallel')">
+        Parallel (overlap)
+      </button>
+      <button :disabled="busy" @click="runInspectorDemo('sequential')">
+        Sequential (stepped)
+      </button>
+      <button :disabled="busy" @click="runInspectorDemo('slow')">
+        Slow (SQL ≥200ms)
+      </button>
+    </div>
 
     <h2>useDb* configurations</h2>
     <p style="color: #555; font-size: 0.9rem;">

@@ -2,7 +2,7 @@
 
 The inspector wraps **SQL drivers** (`pg`, `postgres.js`, `mysql2`, `@libsql/client`), not a specific ORM. Call `inspectSql` **once** when you create the pool or client. Import it from the subpath that matches the driver. The module does not auto-patch.
 
-Then open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Any server request can be tracked (`/api/**`, `server/routes/*`, etc.); it only appears in the list after at least one SQL query (so empty page renders stay hidden). Limit paths with `sqlInspector.include` / `exclude` (see [installation](./installation.md)). Params are redacted by default. In the playground, try `/ssr-demo` (SSR → `/api/users`) or `GET /server-demo`.
+Then open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Any server request can be tracked (`/api/**`, `server/routes/*`, etc.); it only appears in the list after at least one SQL query (so empty page renders stay hidden). The UI shows `×N` when the same SQL fingerprint repeats on a request, a waterfall of query overlap vs sequential, and highlights slow queries (≥ 50ms) and slow request SQL totals (≥ 200ms). Limit paths with `sqlInspector.include` / `exclude` (see [installation](./installation.md)). Params are redacted by default. In the playground, try `/ssr-demo` (SSR → `/api/users`) or `GET /server-demo`.
 
 Driver subpaths (`node-postgres`, `postgres-js`, `mysql2`, `libsql`) are aliased by the module (and match the package exports). Server-only. When the inspector is disabled, those aliases resolve to a no-op `inspectSql`.
 

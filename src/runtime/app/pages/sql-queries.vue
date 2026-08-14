@@ -2,6 +2,12 @@
 import { NuxtLink } from '#components'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRuntimeConfig } from 'nuxt/app'
+import {
+  duplicateCounts,
+  fingerprintSql,
+  maxDuplicateCount,
+} from '../../server/utils/sql-fingerprint'
+import { waterfallBars } from '../../server/utils/sql-waterfall'
 
 type SqlQueryEvent = {
   id: string
@@ -28,6 +34,10 @@ type InspectorBusEvent =
   | { type: 'sql'; query: SqlQueryEvent }
   | { type: 'request:finish'; request: RequestEvent }
   | { type: 'cleared' }
+
+const SLOW_QUERY_MS = 50
+const SLOW_REQUEST_SQL_MS = 200
+const SLOW_REQUEST_MS = 200
 
 const pub = useRuntimeConfig().public.sqlInspector as { apiBase?: string; path?: string }
 const apiBase = (pub?.apiBase || '/api/__sql_queries').replace(/\/$/, '')
@@ -111,6 +121,24 @@ function formatMs(ms: number | null) {
 function sqlTotalMs(req: RequestEvent) {
   return req.queries.reduce((sum, q) => sum + q.durationMs, 0)
 }
+
+function requestDupMax(req: RequestEvent) {
+  return maxDuplicateCount(req.queries.map((q) => q.sql))
+}
+
+const selectedDupCounts = computed(() => {
+  if (!selected.value) return new Map<string, number>()
+  return duplicateCounts(selected.value.queries.map((q) => q.sql))
+})
+
+function queryDupCount(q: SqlQueryEvent) {
+  return selectedDupCounts.value.get(fingerprintSql(q.sql)) ?? 1
+}
+
+const selectedWaterfall = computed(() => {
+  if (!selected.value?.queries.length) return []
+  return waterfallBars(selected.value.queries)
+})
 
 function toggleSort(key: SortKey) {
   if (sortKey.value === key) {
@@ -281,9 +309,12 @@ onBeforeUnmount(() => {
               <td>{{ req.method }}</td>
               <td class="path">{{ req.path }}</td>
               <td>{{ req.statusCode ?? '…' }}</td>
-              <td>{{ formatMs(req.durationMs) }}</td>
-              <td>{{ formatMs(sqlTotalMs(req)) }}</td>
-              <td>{{ req.queries.length }}</td>
+              <td :class="{ slow: req.durationMs != null && req.durationMs >= SLOW_REQUEST_MS }">{{ formatMs(req.durationMs) }}</td>
+              <td :class="{ slow: sqlTotalMs(req) >= SLOW_REQUEST_SQL_MS }">{{ formatMs(sqlTotalMs(req)) }}</td>
+              <td>
+                {{ req.queries.length }}
+                <span v-if="requestDupMax(req)" class="dup">×{{ requestDupMax(req) }}</span>
+              </td>
               <td>{{ formatTime(req.startedAt) }}</td>
             </tr>
             <tr v-if="!filteredRequests.length">
@@ -304,11 +335,25 @@ onBeforeUnmount(() => {
           <dt>SQL count</dt><dd>{{ selected.queries.length }}</dd>
         </dl>
 
+        <div v-if="selectedWaterfall.length" class="waterfall">
+          <div v-for="bar in selectedWaterfall" :key="bar.id" class="wf-row">
+            <span class="wf-n">#{{ bar.index + 1 }}</span>
+            <div class="wf-track">
+              <div
+                class="wf-bar"
+                :class="{ slow: (selected.queries[bar.index]?.durationMs ?? 0) >= SLOW_QUERY_MS }"
+                :style="{ left: `${bar.leftPct}%`, width: `${bar.widthPct}%` }"
+              />
+            </div>
+          </div>
+        </div>
+
         <h3>SQL Queries</h3>
         <article v-for="(q, i) in selected.queries" :key="q.id" class="query">
           <header>
             <strong>#{{ i + 1 }}</strong>
-            <span>{{ formatMs(q.durationMs) }}</span>
+            <span :class="{ slow: q.durationMs >= SLOW_QUERY_MS }">{{ formatMs(q.durationMs) }}</span>
+            <span v-if="queryDupCount(q) >= 2" class="dup">×{{ queryDupCount(q) }}</span>
             <span v-if="q.error" class="bad">ERROR</span>
           </header>
           <!-- eslint-disable-next-line vue/no-v-html -->
@@ -324,7 +369,7 @@ onBeforeUnmount(() => {
       <article v-for="q in backgroundQueries" :key="q.id" class="query">
         <!-- eslint-disable-next-line vue/no-v-html -->
         <pre class="sql" v-html="highlightSql(q.sql)" />
-        <pre class="params">{{ formatMs(q.durationMs) }} · {{ JSON.stringify(q.params) }}</pre>
+        <pre class="params"><span :class="{ slow: q.durationMs >= SLOW_QUERY_MS }">{{ formatMs(q.durationMs) }}</span> · {{ JSON.stringify(q.params) }}</pre>
       </article>
     </section>
   </main>
@@ -350,6 +395,8 @@ h1, h2, h3 { margin: 0 0 0.35rem; font-weight: 700; }
 .meta { margin: 0; color: #555; }
 .ok { color: #0a7a32; }
 .bad { color: #b00020; }
+.slow { color: #b45309; font-weight: 700; }
+.dup { color: #7c3aed; font-weight: 700; }
 button {
   font: inherit;
   padding: 0.4rem 0.75rem;
@@ -441,6 +488,32 @@ dd { margin: 0; }
 }
 .sql { background: #111; color: #e8e8e8; padding: 0.65rem; }
 .params { color: #444; }
+.waterfall { margin: 0 0 1rem; }
+.wf-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.2rem 0;
+}
+.wf-n {
+  flex: 0 0 2rem;
+  color: #666;
+  font-size: 11px;
+}
+.wf-track {
+  position: relative;
+  flex: 1;
+  height: 10px;
+  background: #efeee9;
+  border: 1px solid #ddd;
+}
+.wf-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #333;
+}
+.wf-bar.slow { background: #b45309; }
 .bg { margin-top: 1.5rem; }
 :deep(.kw) { color: #7dd3fc; font-weight: 700; }
 </style>
