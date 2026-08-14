@@ -1,6 +1,6 @@
 # nuxt-sql-inspector
 
-Dev-only Nuxt module that shows each API request and the SQL queries it triggered. Works with **`pg`** / **`postgres.js`** (and pg-compatible clients), **`mysql2`**, and **`@libsql/client`** (SQLite / Turso). See [compatibility](docs/usage.md#compatibility).
+Dev-only Nuxt module that shows each API request and the SQL queries it triggered. Works on **Nuxt 3** and **Nuxt 4**, with **`pg`** / **`postgres.js`** (and pg-compatible clients), **`mysql2`**, and **`@libsql/client`** (SQLite / Turso). See [compatibility](docs/usage.md#compatibility).
 
 ![SQL inspector: request list, waterfall, and query detail](docs/screenshot.jpg)
 
@@ -8,7 +8,7 @@ Dev-only Nuxt module that shows each API request and the SQL queries it triggere
 pnpm add -D nuxt-sql-inspector
 ```
 
-Requires Node 18+.
+Requires Node 18+. Works on **Nuxt 3** and **Nuxt 4** (3.16+).
 
 ```ts
 export default defineNuxtConfig({
@@ -61,8 +61,10 @@ pnpm install
 pnpm dev
 ```
 
-`pnpm dev` pushes the playground schema and starts Nuxt.
+`pnpm dev` pushes the playground Postgres schema and starts Nuxt.
 
 Playground: http://localhost:3000 — inspector: http://localhost:3000/__sql_queries
+
+The homepage has wrap demos for **pg** / **postgres.js**, **mysql2**, and **libSQL**. libSQL uses a file DB under `playground/.data` (no extra service). mysql2 buttons need `MYSQL_DATABASE_URL` (optional; they error if unset).
 
 The Cursor agent skill under [`skills/nuxt-sql-inspector`](skills/nuxt-sql-inspector/SKILL.md) lives in this GitHub repo (it is not part of the npm package `files` list).

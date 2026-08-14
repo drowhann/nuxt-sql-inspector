@@ -1,7 +1,7 @@
 {
   "name": "nuxt-sql-inspector",
   "version": "0.1.2",
-  "description": "Dev-only Nuxt module that shows API requests and their SQL queries (Postgres, MySQL, SQLite/libSQL).",
+  "description": "Dev-only Nuxt 3 and 4 module that shows API requests and their SQL queries (Postgres, MySQL, SQLite/libSQL).",
   "author": "Rohan Dhimal",
   "license": "MIT",
   "homepage": "https://github.com/drowhann/nuxt-sql-inspector",
@@ -126,6 +126,7 @@
     }
   },
   "devDependencies": {
+    "@libsql/client": "^0.17.4",
     "@nuxt/eslint-config": "^1.17.0",
     "@nuxt/module-builder": "^1.0.3",
     "@nuxt/schema": "^3.21.11",
@@ -135,6 +136,7 @@
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
     "eslint": "^9.39.0",
+    "mysql2": "^3.23.3",
     "nuxt": "^3.21.11",
     "pg": "^8.23.0",
     "postgres": "^3.4.9",

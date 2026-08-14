@@ -1,14 +1,14 @@
 ---
 name: nuxt-sql-inspector
 description: >-
-  Add the nuxt-sql-inspector module to a Nuxt app. Use when installing SQL query
+  Add the nuxt-sql-inspector module to a Nuxt 3 or Nuxt 4 app. Use when installing SQL query
   inspection for pg, postgres.js, mysql2, or @libsql/client (Neon Pool,
   Vercel/Netlify/PGlite, Drizzle, Prisma adapter), or wiring /__sql_queries.
 ---
 
 # nuxt-sql-inspector
 
-Dev-only Nuxt module: API requests + SQL queries at `/__sql_queries`. Wraps drivers (`pg` / `postgres.js` / `mysql2` / `@libsql/client`), not a specific ORM.
+Dev-only Nuxt module (Nuxt 3 and Nuxt 4): API requests + SQL queries at `/__sql_queries`. Wraps drivers (`pg` / `postgres.js` / `mysql2` / `@libsql/client`), not a specific ORM.
 
 ## Install
 

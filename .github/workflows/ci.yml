@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  ci:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +24,31 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm lint
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        nuxt: ['3', '4']
+    name: test (Nuxt ${{ matrix.nuxt }})
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Pin Nuxt ${{ matrix.nuxt }}
+        if: matrix.nuxt != '3'
+        run: pnpm add -D nuxt@${{ matrix.nuxt }} @nuxt/schema@${{ matrix.nuxt }}
 
       - run: pnpm dev:prepare
 

@@ -4,7 +4,7 @@ const email = ref('ada@example.com')
 const result = ref('')
 const busy = ref(false)
 
-const examples = [
+const pgExamples = [
   { id: 'pg-pool', label: 'pg Pool + client' },
   { id: 'pg-client', label: 'pg Client + client' },
   { id: 'pg-url', label: 'pg drizzle(url)' },
@@ -12,6 +12,18 @@ const examples = [
   { id: 'postgresjs-client', label: 'postgres.js + client' },
   { id: 'postgresjs-url', label: 'postgres.js drizzle(url)' },
   { id: 'postgresjs-connection', label: 'postgres.js drizzle({ connection })' },
+]
+
+const mysqlExamples = [
+  { id: 'mysql-pool', label: 'mysql2 Pool + client' },
+  { id: 'mysql-connection', label: 'mysql2 Connection + client' },
+  { id: 'mysql-checkout', label: 'mysql2 getConnection()' },
+]
+
+const libsqlExamples = [
+  { id: 'libsql-client', label: 'libsql createClient + client' },
+  { id: 'libsql-url', label: 'libsql drizzle(url)' },
+  { id: 'libsql-batch', label: 'libsql batch()' },
 ]
 
 async function call(path: string, init?: RequestInit) {
@@ -62,7 +74,8 @@ function runInspectorDemo(kind: string) {
   <main style="font-family: ui-monospace, monospace; max-width: 820px; margin: 2rem auto; padding: 0 1rem;">
     <h1>Nuxt SQL Inspector Demo</h1>
     <p>
-      Demo APIs that hit PostgreSQL via Drizzle.
+      Demo APIs for every first-class wrap:
+      <code>pg</code> / <code>postgres.js</code>, <code>mysql2</code>, and <code>@libsql/client</code>.
       Open the inspector at
       <NuxtLink to="/__sql_queries">/__sql_queries</NuxtLink>.
       SSR test:
@@ -73,6 +86,9 @@ function runInspectorDemo(kind: string) {
     </p>
 
     <h2>Users (useDb / pg Pool)</h2>
+    <p style="color: #555; font-size: 0.9rem;">
+      Needs <code>DATABASE_URL</code> (Postgres).
+    </p>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0;">
       <button :disabled="busy" @click="listUsers">GET /api/users</button>
       <button :disabled="busy" @click="getUser">GET /api/users/1</button>
@@ -92,7 +108,7 @@ function runInspectorDemo(kind: string) {
 
     <h2>Inspector checks</h2>
     <p style="color: #555; font-size: 0.9rem;">
-      Open
+      Postgres-only (<code>pg_sleep</code>). Open
       <NuxtLink to="/__sql_queries">/__sql_queries</NuxtLink>
       first, then hit these. Use
       <code>pnpm dev:src</code>
@@ -123,8 +139,44 @@ function runInspectorDemo(kind: string) {
       <button :disabled="busy" @click="runAllDbExamples">
         Run all useDb* (GET /api/db-examples)
       </button>
+    </div>
+
+    <h3>Postgres (<code>pg</code> / postgres.js)</h3>
+    <p style="color: #555; font-size: 0.9rem;">Needs <code>DATABASE_URL</code>.</p>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0;">
       <button
-        v-for="ex in examples"
+        v-for="ex in pgExamples"
+        :key="ex.id"
+        :disabled="busy"
+        @click="runDbExample(ex.id)"
+      >
+        {{ ex.label }}
+      </button>
+    </div>
+
+    <h3>mysql2</h3>
+    <p style="color: #555; font-size: 0.9rem;">
+      Needs <code>MYSQL_DATABASE_URL</code>. Buttons return an error if it is unset.
+    </p>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0;">
+      <button
+        v-for="ex in mysqlExamples"
+        :key="ex.id"
+        :disabled="busy"
+        @click="runDbExample(ex.id)"
+      >
+        {{ ex.label }}
+      </button>
+    </div>
+
+    <h3>libSQL / SQLite</h3>
+    <p style="color: #555; font-size: 0.9rem;">
+      File DB under <code>playground/.data</code> (no extra service). Override with
+      <code>LIBSQL_URL</code>.
+    </p>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0;">
+      <button
+        v-for="ex in libsqlExamples"
         :key="ex.id"
         :disabled="busy"
         @click="runDbExample(ex.id)"

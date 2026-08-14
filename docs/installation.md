@@ -4,7 +4,7 @@
 pnpm add -D nuxt-sql-inspector
 ```
 
-Requires **Node 18+**. `pg`, `postgres`, `mysql2`, and/or `@libsql/client` stay in your app — they are optional peers of this module.
+Works on **Nuxt 3** and **Nuxt 4** (3.16+). Requires **Node 18+**. `pg`, `postgres`, `mysql2`, and/or `@libsql/client` stay in your app — they are optional peers of this module.
 
 ## Nuxt config
 

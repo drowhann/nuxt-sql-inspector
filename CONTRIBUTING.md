@@ -28,6 +28,8 @@ cp playground/.env.example playground/.env
 pnpm dev
 ```
 
+libSQL demos use a file DB under `playground/.data` (no extra service). mysql2 demos need `MYSQL_DATABASE_URL`; without it those buttons return an error.
+
 Do **not** create or apply new Drizzle migrations unless maintainers ask — use the existing playground schema / `drizzle-kit push` via `pnpm dev`.
 
 ## Agent skill

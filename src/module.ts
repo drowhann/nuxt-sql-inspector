@@ -56,6 +56,9 @@ export default defineNuxtModule<ModuleOptions>({
   meta: {
     name: 'nuxt-sql-inspector',
     configKey: 'sqlInspector',
+    compatibility: {
+      nuxt: '^3.16.0 || ^4.0.0',
+    },
   },
   defaults: {
     path: '/__sql_queries',
