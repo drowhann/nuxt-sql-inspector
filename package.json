@@ -1,7 +1,7 @@
 {
   "name": "nuxt-sql-inspector",
-  "version": "0.1.2",
-  "description": "Dev-only Nuxt 3 and 4 module that shows API requests and their SQL queries (Postgres, MySQL, SQLite/libSQL).",
+  "version": "0.2.0",
+  "description": "Dev-only Nuxt 3 and 4 module that shows API requests and their SQL queries (Postgres, MySQL, SQLite).",
   "author": "Rohan Dhimal",
   "license": "MIT",
   "homepage": "https://github.com/drowhann/nuxt-sql-inspector",

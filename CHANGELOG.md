@@ -2,11 +2,19 @@
 
 ## Unreleased
 
+## 0.2.0
+
 `better-sqlite3` and db0 / Nitro `useDatabase()` wraps (`nuxt-sql-inspector/better-sqlite3`, `nuxt-sql-inspector/db0`). Wrap one layer, not both.
+
+Playground demos for mysql2, libSQL, better-sqlite3, and db0 next to the existing Postgres wraps.
+
+Declare Nuxt 3 and Nuxt 4 compatibility (`meta.compatibility.nuxt`) and CI-test both.
 
 Record SQL on checked-out pool clients (`pg` `pool.connect()`, mysql2 `pool.getConnection()`), including transactions. `pool.query` still records once (not doubled via the inner checkout).
 
-Inspector UI: `×N` badge for duplicate SQL on a request, query waterfall (overlap vs sequential), slow highlight (50ms query / 200ms request SQL).
+Inspector UI: `×N` badge for duplicate SQL on a request, query waterfall (overlap vs sequential), slow highlight (50ms query / 200ms request SQL). Copy inlines bind values when `redactParams` is false. EventSource reconnects after the dev server restarts.
+
+Require Node 18+.
 
 ## 0.1.2
 
