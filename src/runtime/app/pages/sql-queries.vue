@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRuntimeConfig } from 'nuxt/app'
+
 definePageMeta({ layout: false })
 
 type SqlQueryEvent = {

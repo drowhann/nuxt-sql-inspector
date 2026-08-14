@@ -11,7 +11,7 @@ import {
   clampMaxRequests,
   DEFAULT_MAX_REQUESTS,
   resolveSqlInspectorEnabled,
-} from './runtime/server/utils/enabled'
+} from './runtime/server/utils/config'
 
 export interface ModuleOptions {
   /**

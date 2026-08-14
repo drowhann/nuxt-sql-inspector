@@ -1,6 +1,6 @@
 {
   "name": "nuxt-sql-inspector",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Dev-only Nuxt module that shows API requests and their SQL queries (Postgres, MySQL, SQLite/libSQL).",
   "author": "Rohan Dhimal",
   "license": "MIT",
@@ -85,7 +85,7 @@
     "prepack": "nuxt-module-build build",
     "dev": "pnpm dev:prepare && sh -c 'cd playground && drizzle-kit push --force' && nuxi dev playground",
     "dev:build": "nuxi build playground",
-    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
+    "dev:prepare": "nuxt-module-build build && nuxt-module-build prepare && nuxi prepare playground",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",

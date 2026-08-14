@@ -1,6 +1,6 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 
-vi.stubGlobal('useRuntimeConfig', () => ({
+globalThis.__sqlInspectorRuntimeConfig = () => ({
   sqlInspector: {
     maxRequests: 200,
     enabled: true,
@@ -8,7 +8,7 @@ vi.stubGlobal('useRuntimeConfig', () => ({
     path: '/__sql_queries',
     apiBase: '/api/__sql_queries',
   },
-}))
+})
 
 const {
   clearStore,
@@ -23,7 +23,7 @@ const {
   clampMaxRequests,
   DEFAULT_MAX_REQUESTS,
   resolveSqlInspectorEnabled,
-} = await import('../src/runtime/server/utils/enabled')
+} = await import('../src/runtime/server/utils/config')
 
 describe('inspector store', () => {
   beforeAll(() => {

@@ -23,7 +23,7 @@ describe('recordQuery param sanitization', () => {
   })
 
   it('redacts by default', async () => {
-    vi.stubGlobal('useRuntimeConfig', () => ({
+    globalThis.__sqlInspectorRuntimeConfig = () => ({
       sqlInspector: {
         enabled: true,
         forceEnableInProduction: true,
@@ -32,7 +32,7 @@ describe('recordQuery param sanitization', () => {
         path: '/__sql_queries',
         apiBase: '/api/__sql_queries',
       },
-    }))
+    })
     const { clearStore, getSnapshot, recordQuery, startRequest } = await import(
       '../src/runtime/server/utils/store'
     )
@@ -51,7 +51,7 @@ describe('recordQuery param sanitization', () => {
   })
 
   it('keeps raw values when redactParams is false', async () => {
-    vi.stubGlobal('useRuntimeConfig', () => ({
+    globalThis.__sqlInspectorRuntimeConfig = () => ({
       sqlInspector: {
         enabled: true,
         forceEnableInProduction: true,
@@ -60,7 +60,7 @@ describe('recordQuery param sanitization', () => {
         path: '/__sql_queries',
         apiBase: '/api/__sql_queries',
       },
-    }))
+    })
     const { clearStore, getSnapshot, recordQuery, startRequest } = await import(
       '../src/runtime/server/utils/store'
     )

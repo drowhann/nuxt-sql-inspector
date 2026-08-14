@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
-import { DEFAULT_MAX_REQUESTS, getSqlInspectorConfig } from './enabled'
+import { DEFAULT_MAX_REQUESTS } from './config'
+import { getSqlInspectorConfig } from './enabled'
 import { redactParams as redactParamList } from './redact-params'
 import type {
   InspectorBusEvent,

@@ -1,3 +1,4 @@
+import { createError, defineEventHandler } from 'h3'
 import { isSqlInspectorEnabled } from '../utils/enabled'
 import { getSnapshot } from '../utils/store'
 

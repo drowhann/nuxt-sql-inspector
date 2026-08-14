@@ -1,3 +1,4 @@
+import { createError, createEventStream, defineEventHandler } from 'h3'
 import { isSqlInspectorEnabled } from '../utils/enabled'
 import { subscribe } from '../utils/store'
 import type { InspectorBusEvent } from '../utils/types'

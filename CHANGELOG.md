@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1
+
+Fix runtime errors in published `dist/` when auto-imports are unavailable in `node_modules`:
+
+- Server: explicit `h3` and `nitropack/runtime` imports (fixes `defineEventHandler is not defined`, etc.)
+- App page: explicit `vue` and `nuxt/app` imports (fixes `onMounted is not defined`)
+- App middleware: explicit `h3` and `nuxt/app` imports
+
 ## 0.1.0
 
 Initial release.

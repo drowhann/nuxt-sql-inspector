@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
-  modules: ['../../../src/module'],
+  modules: ['../../../dist/module'],
   sqlInspector: {
     enabled: true,
     // Fixture builds without nuxt.options.dev — escape hatch required.

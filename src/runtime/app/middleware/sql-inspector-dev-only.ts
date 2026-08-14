@@ -1,3 +1,6 @@
+import { createError } from 'h3'
+import { defineNuxtRouteMiddleware, useRuntimeConfig } from 'nuxt/app'
+
 export default defineNuxtRouteMiddleware((to) => {
   const cfg = useRuntimeConfig().public.sqlInspector as {
     path?: string

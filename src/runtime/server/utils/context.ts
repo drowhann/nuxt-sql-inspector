@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { useEvent } from 'nitropack/runtime'
 
 export type RequestAlsStore = {
   requestId: string

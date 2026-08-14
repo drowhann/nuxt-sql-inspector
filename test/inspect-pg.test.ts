@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
-vi.stubGlobal('useRuntimeConfig', () => ({
+globalThis.__sqlInspectorRuntimeConfig = () => ({
   sqlInspector: {
     maxRequests: 200,
     enabled: true,
@@ -8,11 +8,11 @@ vi.stubGlobal('useRuntimeConfig', () => ({
     path: '/__sql_queries',
     apiBase: '/api/__sql_queries',
   },
-}))
-// Force ALS path (Pool.query must capture id before async checkout)
-vi.stubGlobal('useEvent', () => {
-  throw new Error('no event')
 })
+// Force ALS path (Pool.query must capture id before async checkout)
+globalThis.__sqlInspectorUseEvent = () => {
+  throw new Error('no event')
+}
 
 const { requestAls } = await import('../src/runtime/server/utils/context')
 const { inspectSql } = await import('../src/runtime/server/utils/inspect-pg')
