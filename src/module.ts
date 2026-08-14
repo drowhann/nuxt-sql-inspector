@@ -161,6 +161,7 @@ export default defineNuxtModule<ModuleOptions>({
         name: 'nuxt-sql-inspector',
         path,
         file: resolver.resolve('./runtime/app/pages/sql-queries.vue'),
+        meta: { layout: false },
       })
     })
 

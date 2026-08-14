@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+Remove `definePageMeta` from the inspector page (compile-time macro, not available at runtime in published `dist/`). Layout disabled via `meta: { layout: false }` in `extendPages` instead. Import `NuxtLink` explicitly from `#components`.
+
 ## 0.1.1
 
 Fix runtime errors in published `dist/` when auto-imports are unavailable in `node_modules`:
