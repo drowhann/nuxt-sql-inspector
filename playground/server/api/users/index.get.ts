@@ -6,8 +6,8 @@ export default defineEventHandler(async () => {
   const db = useDb()
   const rows = await db.select().from(users).orderBy(users.id)
   // second query on purpose so the inspector shows multi-query grouping
-  const [{ count }] = await db
+  const countRows = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(users)
-  return { users: rows, count }
+  return { users: rows, count: countRows[0]?.count ?? 0 }
 })
