@@ -14,9 +14,9 @@ If SQL goes through a wrapped driver method below, it shows up; otherwise it doe
 
 | Stack | How to wrap |
 | --- | --- |
-| `pg` Pool / Client | `inspectSql` from `nuxt-sql-inspector/node-postgres` |
+| `pg` Pool / Client | `inspectSql` from `nuxt-sql-inspector/node-postgres` (Pool wrap also covers `.connect()` and queries on the checked-out client) |
 | `postgres` (postgres.js) | `inspectSql` from `nuxt-sql-inspector/postgres-js` |
-| `mysql2` pool / connection | `inspectSql` from `nuxt-sql-inspector/mysql2` (`.query` + `.execute`) |
+| `mysql2` pool / connection | `inspectSql` from `nuxt-sql-inspector/mysql2` (`.query` + `.execute`; Pool wrap also covers `.getConnection()`) |
 | `@libsql/client` (local SQLite + Turso) | `inspectSql` from `nuxt-sql-inspector/libsql` (`.execute` + `.batch`) |
 | Neon `@neondatabase/serverless` **Pool / Client** (WebSocket) | same as `pg` → `/node-postgres` |
 | `@vercel/postgres` **`createPool` / `createClient`** | wrap the pool/client → `/node-postgres` |
@@ -52,6 +52,13 @@ import { inspectSql } from 'nuxt-sql-inspector/node-postgres'
 
 const pool = inspectSql(new Pool({ connectionString: process.env.DATABASE_URL }))
 const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [1])
+
+// transactions / checked-out clients are recorded too:
+const client = await pool.connect()
+await client.query('BEGIN')
+await client.query('SELECT * FROM users WHERE id = $1', [1])
+await client.query('COMMIT')
+client.release()
 
 // or a single Client:
 const client = inspectSql(new Client({ connectionString: process.env.DATABASE_URL }))
@@ -153,6 +160,12 @@ import { inspectSql } from 'nuxt-sql-inspector/mysql2'
 
 const pool = inspectSql(mysql.createPool({ uri: process.env.DATABASE_URL }))
 const [rows] = await pool.execute('SELECT * FROM users WHERE id = ?', [1])
+
+const conn = await pool.getConnection()
+await conn.query('BEGIN')
+await conn.execute('SELECT * FROM users WHERE id = ?', [1])
+await conn.query('COMMIT')
+conn.release()
 ```
 
 ## libSQL / Turso

@@ -94,4 +94,188 @@ describe('inspectSql (node-postgres)', () => {
     expect(getSnapshot().backgroundQueries).toHaveLength(1)
     expect(getSnapshot().backgroundQueries[0]?.sql).toBe('SELECT 2')
   })
+
+  it('records queries on a client from pool.connect()', async () => {
+    startRequest({
+      id: 'req-c1',
+      method: 'GET',
+      path: '/api/tx',
+      startedAt: Date.now(),
+    })
+
+    const inner = {
+      async query(sql: string) {
+        return { rows: [], sql }
+      },
+      release() {},
+    }
+    const pool = {
+      idleCount: 0,
+      async connect() {
+        await new Promise((r) => setTimeout(r, 10))
+        return inner
+      },
+      async query() {
+        throw new Error('pool.query should not record when connect exists')
+      },
+    }
+    const wrapped = inspectSql(pool)
+
+    await requestAls.run({ requestId: 'req-c1' }, async () => {
+      const client = await wrapped.connect()
+      await client.query('SELECT 1')
+    })
+
+    const req = getSnapshot().requests.find((r) => r.id === 'req-c1')
+    expect(req?.queries).toHaveLength(1)
+    expect(req?.queries[0]?.sql).toBe('SELECT 1')
+    expect(getSnapshot().backgroundQueries).toHaveLength(0)
+  })
+
+  it('records queries from callback pool.connect(err, client, release)', async () => {
+    startRequest({
+      id: 'req-cb',
+      method: 'GET',
+      path: '/api/tx',
+      startedAt: Date.now(),
+    })
+
+    const inner = {
+      async query(sql: string) {
+        return { rows: [], sql }
+      },
+      release() {},
+    }
+    const pool = {
+      idleCount: 0,
+      connect(cb: (err: Error | null, client?: typeof inner, release?: () => void) => void) {
+        queueMicrotask(() => cb(null, inner, () => {}))
+      },
+    }
+    const wrapped = inspectSql(pool)
+
+    await requestAls.run({ requestId: 'req-cb' }, async () => {
+      await new Promise<void>((resolve, reject) => {
+        wrapped.connect((err: Error | null, client?: typeof inner) => {
+          if (err || !client) {
+            reject(err ?? new Error('no client'))
+            return
+          }
+          client.query('BEGIN').then(() => resolve(), reject)
+        })
+      })
+    })
+
+    const req = getSnapshot().requests.find((r) => r.id === 'req-cb')
+    expect(req?.queries).toHaveLength(1)
+    expect(req?.queries[0]?.sql).toBe('BEGIN')
+  })
+
+  it('re-pins request id on a reused pool client', async () => {
+    startRequest({
+      id: 'req-a',
+      method: 'GET',
+      path: '/api/a',
+      startedAt: Date.now(),
+    })
+    startRequest({
+      id: 'req-b',
+      method: 'GET',
+      path: '/api/b',
+      startedAt: Date.now(),
+    })
+
+    const inner = {
+      async query(sql: string) {
+        return { rows: [], sql }
+      },
+      release() {},
+    }
+    const pool = {
+      idleCount: 0,
+      async connect() {
+        return inner
+      },
+    }
+    const wrapped = inspectSql(pool)
+
+    await requestAls.run({ requestId: 'req-a' }, async () => {
+      const client = await wrapped.connect()
+      await client.query('SELECT a')
+    })
+    await requestAls.run({ requestId: 'req-b' }, async () => {
+      const client = await wrapped.connect()
+      await client.query('SELECT b')
+    })
+
+    expect(getSnapshot().requests.find((r) => r.id === 'req-a')?.queries[0]?.sql).toBe('SELECT a')
+    expect(getSnapshot().requests.find((r) => r.id === 'req-b')?.queries[0]?.sql).toBe('SELECT b')
+    expect(getSnapshot().backgroundQueries).toHaveLength(0)
+  })
+
+  it('records pool.query once when it internally connect()s', async () => {
+    startRequest({
+      id: 'req-pq',
+      method: 'GET',
+      path: '/api/users',
+      startedAt: Date.now(),
+    })
+
+    const inner = {
+      async query(sql: string) {
+        await new Promise((r) => setTimeout(r, 10))
+        return { rows: [], sql }
+      },
+      release() {},
+    }
+    const pool = {
+      idleCount: 0,
+      async connect() {
+        return inner
+      },
+      async query(this: { connect: () => Promise<typeof inner> }, sql: string) {
+        const client = await this.connect()
+        try {
+          return await client.query(sql)
+        }
+        finally {
+          client.release()
+        }
+      },
+    }
+    const wrapped = inspectSql(pool)
+
+    await requestAls.run({ requestId: 'req-pq' }, async () => {
+      await wrapped.query('SELECT 1')
+    })
+
+    const req = getSnapshot().requests.find((r) => r.id === 'req-pq')
+    expect(req?.queries).toHaveLength(1)
+    expect(req?.queries[0]?.sql).toBe('SELECT 1')
+    expect(getSnapshot().backgroundQueries).toHaveLength(0)
+  })
+
+  it('still records on Client.query when Client.connect is TCP (no checkout)', async () => {
+    startRequest({
+      id: 'req-tcp',
+      method: 'GET',
+      path: '/api/x',
+      startedAt: Date.now(),
+    })
+
+    const client = {
+      async connect() {},
+      async query(sql: string) {
+        return { rows: [], sql }
+      },
+    }
+    const wrapped = inspectSql(client)
+
+    await requestAls.run({ requestId: 'req-tcp' }, async () => {
+      await wrapped.connect()
+      await wrapped.query('SELECT 1')
+    })
+
+    expect(getSnapshot().requests.find((r) => r.id === 'req-tcp')?.queries).toHaveLength(1)
+  })
 })

@@ -51,7 +51,7 @@ Default Prisma Client (no driver adapter) does not go through `pg` and will not 
 
 Postgres-compatible `.query` clients use `/node-postgres` (Neon Pool, Vercel createPool, Netlify `db.pool`, PGlite). Neon HTTP `neon()`, Bun `SQL`, TiDB serverless, sync SQLite (`better-sqlite3`) are **not** supported. Full list: project `docs/usage.md` Compatibility section.
 
-Do not auto-patch. Call once at pool/client creation. When the module is disabled (production), the same imports resolve to a no-op `inspectSql`.
+Wrapping a pg Pool also records `pool.connect()` / checked-out `client.query`. Wrapping a mysql2 pool also records `getConnection()`. Do not auto-patch. Call once at pool/client creation. When the module is disabled (production), the same imports resolve to a no-op `inspectSql`.
 
 ## Open
 

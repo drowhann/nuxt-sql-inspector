@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+Record SQL on checked-out pool clients (`pg` `pool.connect()`, mysql2 `pool.getConnection()`), including transactions. `pool.query` still records once (not doubled via the inner checkout).
+
 ## 0.1.2
 
 Remove `definePageMeta` from the inspector page (compile-time macro, not available at runtime in published `dist/`). Layout disabled via `meta: { layout: false }` in `extendPages` instead. Import `NuxtLink` explicitly from `#components`.
