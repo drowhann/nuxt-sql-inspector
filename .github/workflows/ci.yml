@@ -48,7 +48,7 @@ jobs:
 
       - name: Pin Nuxt ${{ matrix.nuxt }}
         if: matrix.nuxt != '3'
-        run: pnpm add -D nuxt@${{ matrix.nuxt }} @nuxt/schema@${{ matrix.nuxt }}
+        run: pnpm add -w -D nuxt@${{ matrix.nuxt }} @nuxt/schema@${{ matrix.nuxt }}
 
       - run: pnpm dev:prepare
 
