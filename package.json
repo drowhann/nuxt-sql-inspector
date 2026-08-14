@@ -86,7 +86,7 @@
     "dev": "pnpm dev:prepare && sh -c 'cd playground && drizzle-kit push --force' && nuxi dev playground",
     "dev:src": "NUXT_SQL_INSPECTOR_SRC=1 pnpm dev",
     "dev:build": "nuxi build playground",
-    "dev:prepare": "nuxt-module-build build && nuxt-module-build prepare && nuxi prepare playground",
+    "dev:prepare": "nuxt-module-build prepare && nuxt-module-build build && nuxi prepare playground",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
