@@ -181,7 +181,7 @@ export default defineNuxtModule<ModuleOptions>({
         icon: 'carbon:data-base',
         view: {
           type: 'iframe',
-          src: path,
+          src: `${path}?embed=1`,
         },
       })
     }

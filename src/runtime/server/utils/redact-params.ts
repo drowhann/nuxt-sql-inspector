@@ -29,3 +29,24 @@ export function redactParam(value: unknown): RedactedParam {
 export function redactParams(params: unknown[]): RedactedParam[] {
   return params.map(redactParam)
 }
+
+const REDACTED_TYPES = new Set<RedactedParam['type']>([
+  'null',
+  'string',
+  'number',
+  'boolean',
+  'bigint',
+  'array',
+  'object',
+  'buffer',
+  'date',
+  'unknown',
+])
+
+/** True for `{ type, length? }` descriptors from `redactParam`. */
+export function isRedactedParam(value: unknown): value is RedactedParam {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false
+  const t = (value as { type?: unknown }).type
+  if (typeof t !== 'string' || !REDACTED_TYPES.has(t as RedactedParam['type'])) return false
+  return Object.keys(value).every((k) => k === 'type' || k === 'length')
+}

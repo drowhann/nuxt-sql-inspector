@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { NuxtLink } from '#components'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRuntimeConfig } from 'nuxt/app'
+import { useRoute, useRuntimeConfig } from 'nuxt/app'
+import {
+  canInlineParams,
+  formatSqlForCopy,
+} from '../../server/utils/inline-sql-params'
 import {
   duplicateCounts,
   fingerprintSql,
@@ -41,12 +45,16 @@ const SLOW_REQUEST_MS = 200
 
 const pub = useRuntimeConfig().public.sqlInspector as { apiBase?: string; path?: string }
 const apiBase = (pub?.apiBase || '/api/__sql_queries').replace(/\/$/, '')
+const route = useRoute()
+const embedded = ref(route.query.embed != null)
 
 const requests = ref<RequestEvent[]>([])
 const backgroundQueries = ref<SqlQueryEvent[]>([])
 const selectedId = ref<string | null>(null)
+const copiedId = ref<string | null>(null)
 const connected = ref(false)
 const error = ref('')
+let copiedTimer: ReturnType<typeof setTimeout> | null = null
 
 const pathFilter = ref('')
 const methodFilter = ref('')
@@ -154,6 +162,19 @@ function sortMark(key: SortKey) {
   return sortDir.value === 'asc' ? ' ↑' : ' ↓'
 }
 
+function copyTitle(q: SqlQueryEvent) {
+  return canInlineParams(q.params) ? 'Copy with params' : 'Copy'
+}
+
+async function copySql(q: SqlQueryEvent) {
+  await navigator.clipboard.writeText(formatSqlForCopy(q.sql, q.params))
+  copiedId.value = q.id
+  if (copiedTimer) clearTimeout(copiedTimer)
+  copiedTimer = setTimeout(() => {
+    if (copiedId.value === q.id) copiedId.value = null
+  }, 1200)
+}
+
 function upsertRequest(req: RequestEvent) {
   const idx = requests.value.findIndex((r: RequestEvent) => r.id === req.id)
   if (idx === -1) {
@@ -227,6 +248,7 @@ async function clearLogs() {
 let es: EventSource | null = null
 
 onMounted(async () => {
+  if (window.self !== window.top) embedded.value = true
   await loadSnapshot()
   es = new EventSource(`${apiBase}/stream`)
   es.onopen = () => {
@@ -247,6 +269,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   es?.close()
+  if (copiedTimer) clearTimeout(copiedTimer)
 })
 </script>
 
@@ -256,8 +279,10 @@ onBeforeUnmount(() => {
       <div>
         <h1>SQL Queries</h1>
         <p class="meta">
-          <NuxtLink to="/">home</NuxtLink>
-          ·
+          <template v-if="!embedded">
+            <NuxtLink to="/">home</NuxtLink>
+            ·
+          </template>
           <span :class="connected ? 'ok' : 'bad'">{{ connected ? 'live' : 'disconnected' }}</span>
           · {{ filteredRequests.length }}/{{ requests.length }} requests
         </p>
@@ -355,6 +380,9 @@ onBeforeUnmount(() => {
             <span :class="{ slow: q.durationMs >= SLOW_QUERY_MS }">{{ formatMs(q.durationMs) }}</span>
             <span v-if="queryDupCount(q) >= 2" class="dup">×{{ queryDupCount(q) }}</span>
             <span v-if="q.error" class="bad">ERROR</span>
+            <button type="button" class="copy" :title="copyTitle(q)" @click="copySql(q)">
+              {{ copiedId === q.id ? 'Copied' : 'Copy' }}
+            </button>
           </header>
           <!-- eslint-disable-next-line vue/no-v-html -->
           <pre class="sql" v-html="highlightSql(q.sql)" />
@@ -367,9 +395,15 @@ onBeforeUnmount(() => {
     <section v-if="backgroundQueries.length" class="bg">
       <h3>Background queries (no HTTP request)</h3>
       <article v-for="q in backgroundQueries" :key="q.id" class="query">
+        <header>
+          <span :class="{ slow: q.durationMs >= SLOW_QUERY_MS }">{{ formatMs(q.durationMs) }}</span>
+          <button type="button" class="copy" :title="copyTitle(q)" @click="copySql(q)">
+            {{ copiedId === q.id ? 'Copied' : 'Copy' }}
+          </button>
+        </header>
         <!-- eslint-disable-next-line vue/no-v-html -->
         <pre class="sql" v-html="highlightSql(q.sql)" />
-        <pre class="params"><span :class="{ slow: q.durationMs >= SLOW_QUERY_MS }">{{ formatMs(q.durationMs) }}</span> · {{ JSON.stringify(q.params) }}</pre>
+        <pre class="params">Params: {{ JSON.stringify(q.params) }}</pre>
       </article>
     </section>
   </main>
@@ -479,7 +513,13 @@ dd { margin: 0; }
 .query header {
   display: flex;
   gap: 0.75rem;
+  align-items: center;
   margin-bottom: 0.35rem;
+}
+.copy {
+  margin-left: auto;
+  padding: 0.15rem 0.45rem;
+  font-size: 11px;
 }
 .sql, .params {
   margin: 0.25rem 0;
