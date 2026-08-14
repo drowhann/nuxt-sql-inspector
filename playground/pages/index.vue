@@ -26,6 +26,15 @@ const libsqlExamples = [
   { id: 'libsql-batch', label: 'libsql batch()' },
 ]
 
+const betterSqliteExamples = [
+  { id: 'better-sqlite3-client', label: 'better-sqlite3 + client' },
+  { id: 'better-sqlite3-path', label: 'better-sqlite3 drizzle(path)' },
+]
+
+const db0Examples = [
+  { id: 'db0', label: 'db0 createDatabase + sql' },
+]
+
 async function call(path: string, init?: RequestInit) {
   busy.value = true
   try {
@@ -75,7 +84,8 @@ function runInspectorDemo(kind: string) {
     <h1>Nuxt SQL Inspector Demo</h1>
     <p>
       Demo APIs for every first-class wrap:
-      <code>pg</code> / <code>postgres.js</code>, <code>mysql2</code>, and <code>@libsql/client</code>.
+      <code>pg</code> / <code>postgres.js</code>, <code>mysql2</code>,
+      <code>@libsql/client</code>, <code>better-sqlite3</code>, and <code>db0</code>.
       Open the inspector at
       <NuxtLink to="/__sql_queries">/__sql_queries</NuxtLink>.
       SSR test:
@@ -177,6 +187,37 @@ function runInspectorDemo(kind: string) {
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0;">
       <button
         v-for="ex in libsqlExamples"
+        :key="ex.id"
+        :disabled="busy"
+        @click="runDbExample(ex.id)"
+      >
+        {{ ex.label }}
+      </button>
+    </div>
+
+    <h3>better-sqlite3</h3>
+    <p style="color: #555; font-size: 0.9rem;">
+      File DB under <code>playground/.data</code>. Wrap the Database, not db0, on the same client.
+    </p>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0;">
+      <button
+        v-for="ex in betterSqliteExamples"
+        :key="ex.id"
+        :disabled="busy"
+        @click="runDbExample(ex.id)"
+      >
+        {{ ex.label }}
+      </button>
+    </div>
+
+    <h3>db0 (Nitro <code>useDatabase</code>)</h3>
+    <p style="color: #555; font-size: 0.9rem;">
+      <code>createDatabase</code> + better-sqlite3 connector. Wrap the db0 Database
+      (<code>nuxt-sql-inspector/db0</code>), not the inner sqlite instance.
+    </p>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0;">
+      <button
+        v-for="ex in db0Examples"
         :key="ex.id"
         :disabled="busy"
         @click="runDbExample(ex.id)"

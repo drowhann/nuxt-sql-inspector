@@ -4,7 +4,7 @@
 pnpm add -D nuxt-sql-inspector
 ```
 
-Works on **Nuxt 3** and **Nuxt 4** (3.16+). Requires **Node 18+**. `pg`, `postgres`, `mysql2`, and/or `@libsql/client` stay in your app — they are optional peers of this module.
+Works on **Nuxt 3** and **Nuxt 4** (3.16+). Requires **Node 18+**. `pg`, `postgres`, `mysql2`, `@libsql/client`, `better-sqlite3`, and/or `db0` stay in your app — they are optional peers of this module.
 
 ## Nuxt config
 
@@ -24,8 +24,8 @@ export default defineNuxtConfig({
 })
 ```
 
-The module is a no-op in production unless you set **both** `sqlInspector.enabled: true` and `sqlInspector.forceEnableInProduction: true` (not recommended). `enabled: true` alone is ignored outside development. Bind params are **redacted by default** (`redactParams: true`); set `redactParams: false` to store raw values. Driver imports (`node-postgres`, `postgres-js`, `mysql2`, `libsql`) still resolve to an identity `inspectSql` when disabled, so production / Cloudflare builds that keep those imports do not break.
+The module is a no-op in production unless you set **both** `sqlInspector.enabled: true` and `sqlInspector.forceEnableInProduction: true` (not recommended). `enabled: true` alone is ignored outside development. Bind params are **redacted by default** (`redactParams: true`); set `redactParams: false` to store raw values. Driver imports (`node-postgres`, `postgres-js`, `mysql2`, `libsql`, `better-sqlite3`, `db0`) still resolve to an identity `inspectSql` when disabled, so production / Cloudflare builds that keep those imports do not break.
 
 ## Next
 
-See [usage](./usage.md) to wrap `pg`, `postgres.js`, `mysql2`, or `@libsql/client`.
+See [usage](./usage.md) to wrap `pg`, `postgres.js`, `mysql2`, `@libsql/client`, `better-sqlite3`, or db0.

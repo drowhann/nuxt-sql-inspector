@@ -1,10 +1,10 @@
 # Usage
 
-The inspector wraps **SQL drivers** (`pg`, `postgres.js`, `mysql2`, `@libsql/client`), not a specific ORM. Call `inspectSql` **once** when you create the pool or client. Import it from the subpath that matches the driver. The module does not auto-patch.
+The inspector wraps **SQL drivers** (`pg`, `postgres.js`, `mysql2`, `@libsql/client`, `better-sqlite3`, db0), not a specific ORM. Call `inspectSql` **once** when you create the pool or client. Import it from the subpath that matches the driver. The module does not auto-patch.
 
-Then open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Any server request can be tracked (`/api/**`, `server/routes/*`, etc.); it only appears in the list after at least one SQL query (so empty page renders stay hidden). The UI shows `×N` when the same SQL fingerprint repeats on a request, a waterfall of query overlap vs sequential, and highlights slow queries (≥ 50ms) and slow request SQL totals (≥ 200ms). Copy on each query copies SQL; with `redactParams: false` values are inlined for `psql`. Limit paths with `sqlInspector.include` / `exclude` (see [installation](./installation.md)). Params are redacted by default. In the playground, try `/ssr-demo` (SSR → `/api/users`), `GET /server-demo`, or the pg / mysql2 / libsql wrap buttons (`GET /api/db-examples/:id`).
+Then open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Any server request can be tracked (`/api/**`, `server/routes/*`, etc.); it only appears in the list after at least one SQL query (so empty page renders stay hidden). The UI shows `×N` when the same SQL fingerprint repeats on a request, a waterfall of query overlap vs sequential, and highlights slow queries (≥ 50ms) and slow request SQL totals (≥ 200ms). Copy on each query copies SQL; with `redactParams: false` values are inlined for `psql`. Limit paths with `sqlInspector.include` / `exclude` (see [installation](./installation.md)). Params are redacted by default. In the playground, try `/ssr-demo` (SSR → `/api/users`), `GET /server-demo`, or the wrap buttons (`GET /api/db-examples/:id`).
 
-Driver subpaths (`node-postgres`, `postgres-js`, `mysql2`, `libsql`) are aliased by the module (and match the package exports). Server-only. When the inspector is disabled, those aliases resolve to a no-op `inspectSql`.
+Driver subpaths (`node-postgres`, `postgres-js`, `mysql2`, `libsql`, `better-sqlite3`, `db0`) are aliased by the module (and match the package exports). Server-only. When the inspector is disabled, those aliases resolve to a no-op `inspectSql`.
 
 ## Compatibility
 
@@ -18,12 +18,14 @@ If SQL goes through a wrapped driver method below, it shows up; otherwise it doe
 | `postgres` (postgres.js) | `inspectSql` from `nuxt-sql-inspector/postgres-js` |
 | `mysql2` pool / connection | `inspectSql` from `nuxt-sql-inspector/mysql2` (`.query` + `.execute`; Pool wrap also covers `.getConnection()`) |
 | `@libsql/client` (local SQLite + Turso) | `inspectSql` from `nuxt-sql-inspector/libsql` (`.execute` + `.batch`) |
+| `better-sqlite3` Database | `inspectSql` from `nuxt-sql-inspector/better-sqlite3` (`.prepare` statements `.run` / `.get` / `.all` / `.iterate`, plus `.exec` / `.pragma`) |
+| db0 / Nitro `useDatabase()` | `inspectSql` from `nuxt-sql-inspector/db0` (tagged `.sql`, `.exec`, `.prepare`). Any db0 connector. Do **not** also wrap the inner better-sqlite3 instance (double-count) |
 | Neon `@neondatabase/serverless` **Pool / Client** (WebSocket) | same as `pg` → `/node-postgres` |
 | `@vercel/postgres` **`createPool` / `createClient`** | wrap the pool/client → `/node-postgres` |
 | `@netlify/database` **`db.pool`** (or `pg.Pool` from `getConnectionString()`) | wrap that pool → `/node-postgres` |
 | `@electric-sql/pglite` | wrap the `PGlite` instance → `/node-postgres` (has `.query`) |
 | `@effect/sql-pg` | only if you inject a wrapped `pg` Pool/client into Effect |
-| Drizzle on `pg`, `postgres.js`, `mysql2`, or libsql | wrap the underlying client / `$client` |
+| Drizzle on `pg`, `postgres.js`, `mysql2`, libsql, or `better-sqlite3` | wrap the underlying client / `$client` |
 | Prisma with `@prisma/adapter-pg` | wrap the `Pool`, then pass it to `PrismaPg` |
 | Other ORMs with an injectable supported driver client | wrap that underlying client |
 
@@ -42,7 +44,7 @@ Turso-branded packages that re-export / use `@libsql/client` the same way: wrap 
 | Bun `SQL` (Postgres / MySQL / SQLite) | native tagged API — not wrapped yet |
 | `@aws-sdk/client-rds-data` | Data API HTTP, not a SQL socket driver |
 | `@sqlitecloud/drivers` | different driver API — not wrapped yet |
-| `better-sqlite3` / `bun:sqlite` / other sync SQLite | sync `prepare` / `run` / `get` — not wrapped yet |
+| `bun:sqlite` / other sync SQLite | sync `prepare` / `run` / `get` — not wrapped yet |
 
 ## node-postgres (raw)
 
@@ -176,4 +178,41 @@ import { inspectSql } from 'nuxt-sql-inspector/libsql'
 
 const db = inspectSql(createClient({ url: process.env.LIBSQL_URL! }))
 await db.execute('SELECT * FROM users WHERE id = ?', [1])
+```
+
+## better-sqlite3
+
+```ts
+import Database from 'better-sqlite3'
+import { inspectSql } from 'nuxt-sql-inspector/better-sqlite3'
+
+const sqlite = inspectSql(new Database('file.db'))
+sqlite.prepare('SELECT * FROM users WHERE id = ?').get(1)
+```
+
+```ts
+import { drizzle } from 'drizzle-orm/better-sqlite3'
+import { inspectSql } from 'nuxt-sql-inspector/better-sqlite3'
+
+const db = drizzle('file.db')
+inspectSql(db.$client)
+```
+
+## db0 / Nitro `useDatabase()`
+
+Wrap the db0 Database (not the inner driver). Tagged `sql` goes through the connector, not `db.prepare`, so `/better-sqlite3` on `getInstance()` is the wrong wrap for Nitro.
+
+```ts
+import { inspectSql } from 'nuxt-sql-inspector/db0'
+
+const db = inspectSql(useDatabase())
+const { rows } = await db.sql`SELECT * FROM users WHERE id = ${1}`
+```
+
+```ts
+import { createDatabase } from 'db0'
+import sqlite from 'db0/connectors/better-sqlite3'
+import { inspectSql } from 'nuxt-sql-inspector/db0'
+
+const db = inspectSql(createDatabase(sqlite({ path: './.data/db.sqlite3' })))
 ```

@@ -14,6 +14,14 @@ declare module 'nuxt-sql-inspector/libsql' {
   export function inspectSql<T>(client: T): T
 }
 
+declare module 'nuxt-sql-inspector/better-sqlite3' {
+  export function inspectSql<T>(client: T): T
+}
+
+declare module 'nuxt-sql-inspector/db0' {
+  export function inspectSql<T>(client: T): T
+}
+
 declare module '@nuxt/schema' {
   interface PublicRuntimeConfig {
     sqlInspector: {

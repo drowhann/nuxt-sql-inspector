@@ -1,6 +1,6 @@
 # nuxt-sql-inspector
 
-Dev-only Nuxt module that shows each API request and the SQL queries it triggered. Works on **Nuxt 3** and **Nuxt 4**, with **`pg`** / **`postgres.js`** (and pg-compatible clients), **`mysql2`**, and **`@libsql/client`** (SQLite / Turso). See [compatibility](docs/usage.md#compatibility).
+Dev-only Nuxt module that shows each API request and the SQL queries it triggered. Works on **Nuxt 3** and **Nuxt 4**, with **`pg`** / **`postgres.js`** (and pg-compatible clients), **`mysql2`**, **`@libsql/client`**, **`better-sqlite3`**, and **db0** (Nitro `useDatabase()`). See [compatibility](docs/usage.md#compatibility).
 
 ![SQL inspector: request list, waterfall, and query detail](docs/screenshot.jpg)
 
@@ -30,6 +30,12 @@ const mysqlPool = inspectSql(mysql.createPool({ uri }))
 
 import { inspectSql } from 'nuxt-sql-inspector/libsql'
 const db = inspectSql(createClient({ url }))
+
+import { inspectSql } from 'nuxt-sql-inspector/better-sqlite3'
+const sqlite = inspectSql(new Database('file.db'))
+
+import { inspectSql } from 'nuxt-sql-inspector/db0'
+const nitroDb = inspectSql(useDatabase())
 ```
 
 Open `/__sql_queries` in development, or the **SQL** tab in Nuxt DevTools when DevTools is enabled. Bind params are redacted by default (`redactParams: false` to show raw values).
@@ -65,6 +71,6 @@ pnpm dev
 
 Playground: http://localhost:3000 — inspector: http://localhost:3000/__sql_queries
 
-The homepage has wrap demos for **pg** / **postgres.js**, **mysql2**, and **libSQL**. libSQL uses a file DB under `playground/.data` (no extra service). mysql2 buttons need `MYSQL_DATABASE_URL` (optional; they error if unset).
+The homepage has wrap demos for **pg** / **postgres.js**, **mysql2**, **libSQL**, **better-sqlite3**, and **db0**. libSQL / better-sqlite3 / db0 use file DBs under `playground/.data`. mysql2 buttons need `MYSQL_DATABASE_URL` (optional; they error if unset).
 
 The Cursor agent skill under [`skills/nuxt-sql-inspector`](skills/nuxt-sql-inspector/SKILL.md) lives in this GitHub repo (it is not part of the npm package `files` list).

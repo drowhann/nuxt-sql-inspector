@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+`better-sqlite3` and db0 / Nitro `useDatabase()` wraps (`nuxt-sql-inspector/better-sqlite3`, `nuxt-sql-inspector/db0`). Wrap one layer, not both.
+
 Record SQL on checked-out pool clients (`pg` `pool.connect()`, mysql2 `pool.getConnection()`), including transactions. `pool.query` still records once (not doubled via the inner checkout).
 
 Inspector UI: `×N` badge for duplicate SQL on a request, query waterfall (overlap vs sequential), slow highlight (50ms query / 200ms request SQL).

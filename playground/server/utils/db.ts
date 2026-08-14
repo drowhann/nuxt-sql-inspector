@@ -6,8 +6,12 @@ import { sql } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres'
 import { drizzle as drizzlePostgresJs } from 'drizzle-orm/postgres-js'
+import { drizzle as drizzleBetterSqlite3 } from 'drizzle-orm/better-sqlite3'
 import { drizzle as drizzleLibsql } from 'drizzle-orm/libsql'
 import { drizzle as drizzleMysql } from 'drizzle-orm/mysql2'
+import { createDatabase } from 'db0'
+import sqliteConnector from 'db0/connectors/better-sqlite3'
+import Database from 'better-sqlite3'
 import mysql from 'mysql2/promise'
 import { Client, Pool } from 'pg'
 import postgres from 'postgres'
@@ -15,6 +19,8 @@ import { inspectSql as inspectPg } from 'nuxt-sql-inspector/node-postgres'
 import { inspectSql as inspectPostgresJs } from 'nuxt-sql-inspector/postgres-js'
 import { inspectSql as inspectMysql2 } from 'nuxt-sql-inspector/mysql2'
 import { inspectSql as inspectLibsql } from 'nuxt-sql-inspector/libsql'
+import { inspectSql as inspectBetterSqlite3 } from 'nuxt-sql-inspector/better-sqlite3'
+import { inspectSql as inspectDb0 } from 'nuxt-sql-inspector/db0'
 import * as schema from './schema'
 
 export type DbDialect = 'pg' | 'mysql' | 'sqlite'
@@ -29,12 +35,16 @@ function mysqlUrl() {
   return url
 }
 
+function sqliteFile(fileName: string) {
+  const dir = join(dirname(fileURLToPath(import.meta.url)), '../../.data')
+  mkdirSync(dir, { recursive: true })
+  return join(dir, fileName)
+}
+
 function libsqlUrl(fileName = 'playground.db') {
   const configured = useRuntimeConfig().libsqlUrl as string | undefined
   if (configured) return configured
-  const dir = join(dirname(fileURLToPath(import.meta.url)), '../../.data')
-  mkdirSync(dir, { recursive: true })
-  return `file:${join(dir, fileName)}`
+  return `file:${sqliteFile(fileName)}`
 }
 
 function nFromRows(rows: unknown): number {
@@ -51,8 +61,12 @@ async function runMysqlProbe(db: { execute: (q: ReturnType<typeof sql>) => Promi
   return nFromRows(await db.execute(sql`select 1 as n`))
 }
 
-async function runSqliteProbe(db: { get: (q: ReturnType<typeof sql>) => Promise<unknown> }) {
+async function runSqliteProbe(db: { get: (q: ReturnType<typeof sql>) => unknown }) {
   return nFromRows(await db.get(sql`select 1 as n`))
+}
+
+async function runDb0Probe(db: { sql: (strings: TemplateStringsArray, ...values: any[]) => Promise<unknown> }) {
+  return nFromRows(await db.sql`select 1 as n`)
 }
 
 // ponytail: drizzle Pool/Client overloads don't share one ReturnType
@@ -246,6 +260,51 @@ async function runLibsqlBatch() {
   return 1
 }
 
+// --- better-sqlite3 ---------------------------------------------------------
+
+let betterSqlite: Database.Database | null = null
+let dbBetterSqlite: ReturnType<typeof drizzleBetterSqlite3> | null = null
+
+function useBetterSqlite() {
+  if (!betterSqlite) {
+    betterSqlite = inspectBetterSqlite3(new Database(sqliteFile('playground-better-sqlite3.sqlite3')))
+  }
+  return betterSqlite!
+}
+
+/** `new Database` → inspectSql → `drizzle({ client })` */
+export function useDbBetterSqlite3() {
+  if (!dbBetterSqlite) {
+    dbBetterSqlite = drizzleBetterSqlite3({ client: useBetterSqlite() })
+  }
+  return dbBetterSqlite!
+}
+
+let dbBetterSqliteUrl: ReturnType<typeof drizzleBetterSqlite3> | null = null
+
+/** `drizzle(path)` then `inspectSql(db.$client)` */
+export function useDbBetterSqlite3Path() {
+  if (!dbBetterSqliteUrl) {
+    dbBetterSqliteUrl = drizzleBetterSqlite3(sqliteFile('playground-better-sqlite3-drizzle.sqlite3'))
+    inspectBetterSqlite3(dbBetterSqliteUrl.$client)
+  }
+  return dbBetterSqliteUrl!
+}
+
+// --- db0 --------------------------------------------------------------------
+
+let db0Db: ReturnType<typeof createDatabase> | null = null
+
+/** `createDatabase` (better-sqlite3 connector) → inspectSql */
+export function useDb0() {
+  if (!db0Db) {
+    db0Db = inspectDb0(createDatabase(sqliteConnector({
+      path: sqliteFile('playground-db0.sqlite3'),
+    })))
+  }
+  return db0Db!
+}
+
 /** Default demo DB (node-postgres Pool). Used by /api/users. */
 export function useDb() {
   return useDbPgPool()
@@ -265,4 +324,7 @@ export const dbExamples = [
   { id: 'libsql-client', label: 'libsql createClient + drizzle({ client })', dialect: 'sqlite' as const, run: async () => runSqliteProbe(useDbLibsql()) },
   { id: 'libsql-url', label: 'libsql drizzle(url) + db.$client', dialect: 'sqlite' as const, run: async () => runSqliteProbe(useDbLibsqlUrl()) },
   { id: 'libsql-batch', label: 'libsql client.batch()', dialect: 'sqlite' as const, run: () => runLibsqlBatch() },
+  { id: 'better-sqlite3-client', label: 'better-sqlite3 Database + drizzle({ client })', dialect: 'sqlite' as const, run: async () => runSqliteProbe(useDbBetterSqlite3()) },
+  { id: 'better-sqlite3-path', label: 'better-sqlite3 drizzle(path) + db.$client', dialect: 'sqlite' as const, run: async () => runSqliteProbe(useDbBetterSqlite3Path()) },
+  { id: 'db0', label: 'db0 createDatabase + sql tagged', dialect: 'sqlite' as const, run: async () => runDb0Probe(useDb0()) },
 ] as const
