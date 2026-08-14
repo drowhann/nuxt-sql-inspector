@@ -5,8 +5,8 @@ import { useDb } from '../utils/db'
 /** Non-/api server route demo: GET /server-demo */
 export default defineEventHandler(async () => {
   const db = useDb()
-  const [{ count }] = await db
+  const countRows = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(users)
-  return { ok: true, count }
+  return { ok: true, count: countRows[0]?.count ?? 0 }
 })

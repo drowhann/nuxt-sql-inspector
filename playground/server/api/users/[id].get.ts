@@ -15,9 +15,9 @@ export default defineEventHandler(async (event) => {
   }
 
   // companion query for grouping demo
-  const [{ total }] = await db
+  const totalRows = await db
     .select({ total: sql<number>`count(*)::int` })
     .from(users)
 
-  return { user, totalUsers: total }
+  return { user, totalUsers: totalRows[0]?.total ?? 0 }
 })
