@@ -246,17 +246,36 @@ async function clearLogs() {
 }
 
 let es: EventSource | null = null
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let stopped = false
+const RECONNECT_MS = 1000
 
-onMounted(async () => {
-  if (window.self !== window.top) embedded.value = true
-  await loadSnapshot()
+function scheduleReconnect() {
+  if (stopped || reconnectTimer) return
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null
+    connectStream()
+  }, RECONNECT_MS)
+}
+
+function connectStream() {
+  if (stopped) return
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer)
+    reconnectTimer = null
+  }
+  es?.close()
   es = new EventSource(`${apiBase}/stream`)
   es.onopen = () => {
     connected.value = true
     error.value = ''
+    loadSnapshot()
   }
   es.onerror = () => {
     connected.value = false
+    es?.close()
+    es = null
+    scheduleReconnect()
   }
   es.onmessage = (msg) => {
     try {
@@ -265,10 +284,27 @@ onMounted(async () => {
       // ignore malformed
     }
   }
+}
+
+function onVisibility() {
+  if (document.visibilityState === 'visible' && !connected.value) {
+    connectStream()
+  }
+}
+
+onMounted(async () => {
+  if (window.self !== window.top) embedded.value = true
+  await loadSnapshot()
+  connectStream()
+  document.addEventListener('visibilitychange', onVisibility)
 })
 
 onBeforeUnmount(() => {
+  stopped = true
+  document.removeEventListener('visibilitychange', onVisibility)
+  if (reconnectTimer) clearTimeout(reconnectTimer)
   es?.close()
+  es = null
   if (copiedTimer) clearTimeout(copiedTimer)
 })
 </script>
