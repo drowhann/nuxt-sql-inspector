@@ -35,6 +35,9 @@
     "vercel-postgres",
     "devtools"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "type": "module",
   "exports": {
     ".": {

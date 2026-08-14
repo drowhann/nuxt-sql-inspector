@@ -2,9 +2,13 @@
 
 Dev-only Nuxt module that shows each API request and the SQL queries it triggered. Works with **`pg`** / **`postgres.js`** (and pg-compatible clients), **`mysql2`**, and **`@libsql/client`** (SQLite / Turso). See [compatibility](docs/usage.md#compatibility).
 
+![SQL inspector: request list, waterfall, and query detail](docs/screenshot.jpg)
+
 ```bash
 pnpm add -D nuxt-sql-inspector
 ```
+
+Requires Node 18+.
 
 ```ts
 export default defineNuxtConfig({
